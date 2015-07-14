@@ -6,7 +6,12 @@ set (UP_VEUPION_MAJOR 1)
 set (UP_VEUPION_MINOR 0)
 
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -fcolor-diagnostics")
+
+# If the compiler is Clang, silence the unrecognised flags
+if(${CMAKE_CXX_COMPILER_ID} MATCHES ".*Clang.*")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics")
+endif()
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/include )
 
