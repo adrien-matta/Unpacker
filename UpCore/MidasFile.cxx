@@ -1,4 +1,3 @@
-
 // Unpacker
 #include "MidasFile.h"
 
@@ -11,7 +10,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <iostream>
-
+#include <string.h>
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif

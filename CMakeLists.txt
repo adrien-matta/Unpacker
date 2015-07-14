@@ -30,7 +30,6 @@ link_directories( ${LINK_DIRECTORIES})
 find_package(NPLib)
 include(${NPLib_USE_FILE})
 
-
 # add lib
 set(UP_SUB_DIRECTORIES UpCore)
 

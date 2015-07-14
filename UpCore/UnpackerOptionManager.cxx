@@ -1,7 +1,7 @@
 #include"UnpackerOptionManager.h"
 #include<cstdlib>
 #include<iostream>
-
+#include<stdio.h>
 UnpackerOptionManager* UnpackerOptionManager::instance = 0;
 
 ////////////////////////////////////
