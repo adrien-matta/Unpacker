@@ -40,5 +40,5 @@ file(GLOB incfiles "${subdir}/*.h")
   endforeach(incfile)
 endforeach(subdir)
 
-add_executable(unpacker unpacker.cxx)   
+add_executable(unpacker Unpacker.cxx)   
 target_link_libraries(unpacker ${ROOT_LIBRARIES} UnpackerCore)
