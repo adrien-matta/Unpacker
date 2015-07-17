@@ -200,14 +200,15 @@ void MidasBank::Process(unsigned int NumberOfFragment){
       m_CurrentEvent->timestamp_live.push_back(m_eventfragment[g]->timestamp_live);
       m_CurrentEvent->timestamp_tr.push_back(m_eventfragment[g]->timestamp_tr); 
       m_CurrentEvent->timestamp_ta.push_back(m_eventfragment[g]->timestamp_ta); 
-      
-     if(m_eventfragment[g]->samplesfound>0){
+     
       int name_offset = 0;
       while(gDirectory->FindObjectAny(Form("wf_%i",name_offset))){
         name_offset++;
       }
       name_offset++;
-       
+      
+     if(m_eventfragment[g]->samplesfound>0){
+      
        TH1F h  = TH1F(Form("wf_%i",name_offset),Form("wf_%i",name_offset),m_eventfragment[g]->samplesfound,0,m_eventfragment[g]->samplesfound);
        h.SetDirectory(0);
       for(int wl = 0 ; wl<m_eventfragment[g]->samplesfound ;wl++){
@@ -215,6 +216,13 @@ void MidasBank::Process(unsigned int NumberOfFragment){
         }
       m_CurrentEvent->waveform.push_back(h);
      }
+
+     else{
+       TH1F h  = TH1F(Form("wf_%i",name_offset),Form("wf_%i",name_offset),1,0,1);
+         m_CurrentEvent->waveform.push_back(h);  
+
+     }
+
        delete m_eventfragment[g];
     }
 

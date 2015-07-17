@@ -67,6 +67,9 @@ void Trifoil::FillData(TMidasEvent* TigEvent){
       m_data->SetTimeCFD(TigEvent->cfd_value[i]);
       m_data->SetTimeLED(TigEvent->led_value[i]);
       }
+      else{
+        cout << "trifoil issue" << endl;
+      }
     }
   }
 }
