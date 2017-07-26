@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 
 # This script detect the root version and call the command necessary to build 
 # a Dictionnary, rootmap and pcm file accordingly
