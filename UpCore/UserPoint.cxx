@@ -89,7 +89,7 @@ void UserPoint::EndOfRunAction(){
 }
 
 void UserPoint::BeginOfRunAction(){
-  m_sharc->ReadFSPCFile("CurrentConfig_S1554.txt");
-  m_tig->ReadFSPCFile("CurrentConfig_S1554.txt");
-  m_trifoil->ReadFSPCFile("CurrentConfig_S1554.txt");
+  m_sharc->ReadFSPCFile("Config.txt");
+  m_tig->ReadFSPCFile("Config.txt");
+  m_trifoil->ReadFSPCFile("Config.txt");
 }
