@@ -8,8 +8,8 @@
 # 7: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
 # 8: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
 # 9: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
-# 10: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
-# 11: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
+# 10: Address 0x0900a00, card Tig10, RFL00XSx     calibCoeff  0.000000	0.000000	0.000000
+# 11: Address 0x0900a01, card Tig10, TRF00XLx     calibCoeff  0.000000	0.000000	0.000000
 # 12: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
 # 13: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
 # 14: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
