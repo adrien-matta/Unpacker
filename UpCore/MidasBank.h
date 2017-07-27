@@ -25,7 +25,8 @@ struct EventFragment	{
 	bool IsBad;
   
 	bool pileup;
-  
+  bool overflow;
+
 	bool slowrisetime;
 	bool has_waveform;
   
@@ -33,7 +34,8 @@ struct EventFragment	{
 	bool found_time;
 	bool found_charge;
 	bool found_channel;
-  
+  bool found_trailer;
+
 	float corrected_charge;
   
 	int charge;
@@ -57,7 +59,7 @@ struct EventFragment	{
 	int samplesfound;
   int* wave;
   
-  EventFragment():found_time(false), found_charge(false), found_channel(false),charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),cfd(0),led(0),triggerpattern(0),timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),samplesfound(0){wave=new int[2880];}
+  EventFragment():found_time(false), found_charge(false), found_channel(false),found_trailer(false),charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),cfd(0),led(0),triggerpattern(0),timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),samplesfound(0){wave=new int[2880];}
   ~EventFragment(){delete wave;}
   
 };
@@ -73,7 +75,7 @@ public: // check if the singleton is already instantiate and return its pointer
   static MidasBank* getInstance();
   void   Destroy();
 private: // Bank of fragment and associate midas file
-  list<EventFragment*> m_FragmentBank;
+  map< int, vector<EventFragment*> > m_FragmentBank;
   vector<EventFragment*> m_eventfragment;// store the different fragment until event is completed
   
   unsigned int m_Offset; // this offset is how many event to add at the end of the bank for each found fragments
@@ -84,7 +86,6 @@ private: // Manage the Fragment Bank
   void SetBankOffset(unsigned int Offset);
   void Clear();
   void PushBackFragment();
-  list<EventFragment*>::iterator PopElementFragment(list<EventFragment*>::iterator it);
   void InitTree();
   
 

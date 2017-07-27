@@ -155,8 +155,9 @@ void Sharc::FillData(TMidasEvent* TigEvent){
   //cout << TigEvent->channel_number[0] << endl;
   unsigned int size = TigEvent->channel_number.size();
   for(unsigned int i = 0 ; i < size ; i++){
+
     if(m_FSPC2Detector.find(TigEvent->channel_number[i])!=m_FSPC2Detector.end()){
-      int DetNbr = m_FSPC2Detector[TigEvent->channel_number[i]][0];
+     int DetNbr = m_FSPC2Detector[TigEvent->channel_number[i]][0];
       int type = m_FSPC2Detector[TigEvent->channel_number[i]][1];
       int FB = m_FSPC2Detector[TigEvent->channel_number[i]][2];
 
@@ -182,9 +183,9 @@ void Sharc::FillData(TMidasEvent* TigEvent){
 // Fill Box
 void Sharc::FillBoxFront(int DetNbr, int hit,TMidasEvent* TigEvent){
 
-  // FSPC file is numbered from 0 to 31
+  // FSPC file is numbered from 0 to 23
   int  StripNbr = m_FSPC2Detector[TigEvent->channel_number[hit]][3] + 1;
-  if(StripNbr<25){
+  if(StripNbr<25&&StripNbr>0){
     m_data->SetFront_DetectorNbr(m_DetNbrMap[DetNbr]);
     m_data->SetFront_StripNbr(StripNbr);
     m_data->SetFront_Energy(TigEvent->charge_raw[hit]);
@@ -192,15 +193,16 @@ void Sharc::FillBoxFront(int DetNbr, int hit,TMidasEvent* TigEvent){
     m_data->SetFront_TimeLED(TigEvent->led_value[hit]);
   }
   else
-    cout << "Strip front too high" << endl;
+    cout << "Wrong Strip Front " << StripNbr << endl;
 }
 void Sharc::FillBoxBack(int DetNbr, int hit,TMidasEvent* TigEvent){
 
-  // FSPC file is numbered from 0 to 31
+  // FSPC file is numbered from 0 to 47
   int StripNbr = m_FSPC2Detector[TigEvent->channel_number[hit]][3] + 1;
+
   // Box Case, ordering is reversed
-  //StripNbr = 32 - StripNbr+1;
-  if(StripNbr<49){
+  if(StripNbr<49 || StripNbr>0){
+
     m_data->SetBack_DetectorNbr(m_DetNbrMap[DetNbr]);
     m_data->SetBack_StripNbr(48-StripNbr+1);
     m_data->SetBack_Energy(TigEvent->charge_raw[hit]);
@@ -208,7 +210,7 @@ void Sharc::FillBoxBack(int DetNbr, int hit,TMidasEvent* TigEvent){
     m_data->SetBack_TimeLED(TigEvent->led_value[hit]);
   }
   else
-    cout << "Strip Back too high" << endl;
+    cout << "Wrong Strip Back " << StripNbr << endl;
 }
 
 
