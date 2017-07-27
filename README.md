@@ -4,8 +4,7 @@ Preparation:
  - create the $UNPACKER/fspc2ch.h 
 
 Installation 
- - make sure that unpacker.sh and scripts/unpacker-cleaner.sh etc... are all executables
-	 -chmod u+x <filename>.sh ...
+ - make sure that unpacker.sh and scripts/unpacker-cleaner.sh etc.. are all executables (> chmod u+x filename.sh)
  - source unpacker.sh (or add it to bashrc)
  - Cleaning: see below (this cleaning gets you to the pre-cmake stage!)
  - cmake ./    
