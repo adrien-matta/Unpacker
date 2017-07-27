@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 
 for i in $1*.mid
 do
@@ -9,6 +9,6 @@ do
 if [ -f $DATANAME ]
   then echo $i already treated, ignored
 else
-  ./unpacker $i --user-output-name DataS1554 --no-bank-tree --user-output-path $2 --intial-load 100000 --maximum-load 500000
+  ./unpacker $i --user-output-name rawdata --no-bank-tree --user-output-path $2 --intial-load 1000000 --maximum-load 1000000
 fi
 done
