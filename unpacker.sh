@@ -35,4 +35,6 @@ fi
 export PATH=$PATH:$UNPACKER
 #echo updating the path $PATH
 
+alias unpacker='cd $UNPACKER'
+
 
