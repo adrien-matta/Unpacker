@@ -406,7 +406,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
         else if((value & 0x0f000000)==0x08000000)
           eventfragment->timestamp_ta = (value & 0x00ffffff);
         else{
-          cout << "Time stamp datum incorrectly formatted formated : " << hex << dword << endl;
+          cout << "Time stamp datum incorrectly formatted : " << hex << dword << endl;
         }
      case 0xb0000000: // Trigger Pattern
                       eventfragment->triggerpattern = value;
@@ -420,7 +420,10 @@ void MidasBank::UnpackTigress(int *data, int size)	{
                       channel = (dword & 0x000000ff);
 
                       eventfragment->channel_raw =  dword & 0x00ffffff ;
-                      eventfragment->tig10 = true;
+                      if(slave==1)
+                        eventfragment->tig64 = true;
+                      else
+                        eventfragment->tig10 = true;
                       break;
       case 0xe0000000: // Event Trailer
                      if(current_eventId!=(value&0x00ffffff))
