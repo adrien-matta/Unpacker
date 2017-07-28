@@ -186,13 +186,12 @@ void MidasBank::Process(unsigned int NumberOfFragment){
       }
       if(EventNumber%10000==0){
         cout << "\r  " << NumberFragment/1000000. << "M frag. treated |"
-          <<" Build:  " << EventNumber
-          <<" Avg. size: " << average_fragment << " Avg.PB: " << average_pushback <<" | "
-          <<" Bank size : " << m_BankSize ;
+          <<" Build:  " << EventNumber<<" |"
+          <<" Avg. size: " << average_fragment << " Avg.PB: " << average_pushback <<" |"
+          <<" Bank size : " << m_BankSize<<" |"
           <<" Unknown digitizer : " << UnknownFragment  << flush;
       }
     }
-
 
   }
 
@@ -449,7 +448,12 @@ void MidasBank::UnpackTigress(int *data, int size)	{
   }
   if(eventfragment && !(eventfragment->found_time && eventfragment->found_charge && eventfragment->found_channel&&eventfragment->found_eventID&& eventfragment->found_trailer)){
     delete eventfragment;
-    cout << "incomplete fragment remain" << endl;
+    cout << "\nincomplete fragment remain" << endl;
+    cout << "\t?found time    " << eventfragment->found_time   << endl;
+    cout << "\t?found charge  " << eventfragment->found_charge << endl;
+    cout << "\t?found channel " << eventfragment->found_channel << endl;
+    cout << "\t?found eventID " << eventfragment->found_eventID << endl;
+    cout << "\t?found trailer " << eventfragment->found_trailer << endl;
   }
 }
 
