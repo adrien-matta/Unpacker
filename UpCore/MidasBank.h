@@ -4,9 +4,9 @@
 #ifndef MidasBank_H
 #define MidasBank_H
 
-#include<list>
-#include<iostream>
-#include<string>
+#include <list>
+#include <iostream>
+#include <string>
 using namespace std;
 
 // ROOT
@@ -14,9 +14,9 @@ using namespace std;
 #include "TTree.h"
 
 // Unpacker
-#include"MidasEventFragment.h"
-#include"MidasFile.h"
-#include"TMidasEvent.h"
+#include "MidasEventFragment.h"
+#include "MidasFile.h"
+#include "TMidasEvent.h"
 
 struct EventFragment	{
   

@@ -16,7 +16,7 @@ class TMidasEvent : public TObject{
   public:
     TMidasEvent();
     // Create the class and reserve the vector size for MaxChannel
-    // Limit the number of dynamic allocation, so better perf but more memory used
+    // Limit the number of dynamic allocation, so better performance but more memory used
     TMidasEvent(int MaxChannel);
     ~TMidasEvent();
 
