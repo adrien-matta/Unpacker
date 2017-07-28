@@ -93,6 +93,7 @@ void MidasBank::Process(unsigned int NumberOfFragment){
   cout << "Starting Bank Processing " << endl;
   map< int, vector<EventFragment*> >::iterator it;
   int NumberFragment = 0 ; // only if digitizer is recognised
+  int UnknownFragment = 0 ; // if digitizer is NOT recognised
   int currentID = 0;
   int position = 0;
   int EventNumber = 0;
@@ -127,8 +128,10 @@ void MidasBank::Process(unsigned int NumberOfFragment){
           m_CurrentEvent->tig_type.push_back(1);
           NumberFragment++;
         }
-        else
+        else{
           cout <<"type unknown!" << endl ;
+          UnknownFragment++;
+        }
 
         m_CurrentEvent->channel_number.push_back(m_eventfragment[g]->channel);
         m_CurrentEvent->channel_raw.push_back(m_eventfragment[g]->channel_raw);
@@ -185,7 +188,8 @@ void MidasBank::Process(unsigned int NumberOfFragment){
         cout << "\r  " << NumberFragment/1000000. << "M frag. treated |"
           <<" Build:  " << EventNumber
           <<" Avg. size: " << average_fragment << " Avg.PB: " << average_pushback <<" | "
-          <<"Bank size : " << m_BankSize  << flush;
+          <<" Bank size : " << m_BankSize ;
+          <<" Unknown digitizer : " << UnknownFragment  << flush;
       }
     }
 
