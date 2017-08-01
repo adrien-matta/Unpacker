@@ -211,7 +211,7 @@
 # 211: Address 0x0200a01, card Tig10, SHB05EN00x     calibCoeff  0.000000	1.000000	0.000000
 # 212: Address 0x0200a02, card Tig10, SHB06EN00x     calibCoeff  0.000000	1.000000	0.000000
 # 213: Address 0x0200a03, card Tig10, SHB07EN00x     calibCoeff  0.000000	1.000000	0.000000
-# 214: Address 0x0200a03, card Tig10, SHB08EN00x     calibCoeff  0.000000	1.000000	0.000000
+# 214: Address 0x0200a04, card Tig10, SHB08EN00x     calibCoeff  0.000000	1.000000	0.000000
 # 220: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
 # 221: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
 # 222: Address 0xffffffff, card Tig10, Empty     calibCoeff  0.000000	0.000000	0.000000
