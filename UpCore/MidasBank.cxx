@@ -438,7 +438,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
      case 0xb0000000: // Trigger Pattern
                       eventfragment->triggerpattern = value;
                       break;
-      case 0xc0000000: // port info,  New Channel
+      case 0xc0000000: // port info, fspc,  New Channel
                       eventfragment->found_channel = true;
                       //eventfragment->channel =  FSPC_to_channel(dword & 0x00ffffff);
                       eventfragment->channel =  m_MidasChannel->GetChannelNumber(dword & 0x00ffffff);
@@ -449,17 +449,17 @@ void MidasBank::UnpackTigress(int *data, int size)	{
                       if(m_MidasChannel->GetDigitizerType(dword & 0x00ffffff)==64){
                         eventfragment->tig10 = false;
                         eventfragment->tig64 = true;
-                        eventfragment->integration->GetGetIntegration(dword & 0x00ffffff)
+                        eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
                       }
                       else if (m_MidasChannel->GetDigitizerType(dword & 0x00ffffff)==10){
                         eventfragment->tig10 = true;
                         eventfragment->tig64 = false;
-                        eventfragment->integration->GetGetIntegration(dword & 0x00ffffff)
+                        eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
                       }
                       else{
                         eventfragment->tig10 = false;
                         eventfragment->tig64 = false;
-                        eventfragment->integration->GetGetIntegration(dword & 0x00ffffff)
+                        eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
                       }
                       break;
       case 0xe0000000: // Event Trailer
