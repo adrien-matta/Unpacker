@@ -1,7 +1,6 @@
 Preparation:
  - create the Configuration file that links the detector to the DAQ address
  - This file should be named "Config.txt"
- - create the $UNPACKER/fspc2ch.h 
 
 Installation 
  - make sure that unpacker.sh and scripts/unpacker-cleaner.sh etc.. are all executables (> chmod u+x filename.sh)
@@ -17,13 +16,3 @@ Execute:
 
 Future enhancement: 
  - Give the config file as an argument
- - Write a code to produce the fspc2ch.h file automatically
-
-
-
-
-
-
-
-
-
