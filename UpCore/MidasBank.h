@@ -14,9 +14,11 @@ using namespace std;
 #include "TTree.h"
 
 // Unpacker
+#include "MidasChannelMap.h"
 #include "MidasEventFragment.h"
 #include "MidasFile.h"
 #include "TMidasEvent.h"
+
 
 struct EventFragment	{
   
@@ -39,6 +41,7 @@ struct EventFragment	{
 	float corrected_charge;
   
 	int charge;
+  int integration;
 	int channel;
 	int channel_raw;
   
@@ -80,6 +83,7 @@ private: // Bank of fragment and associate midas file
   
   unsigned int m_Offset; // this offset is how many event to add at the end of the bank for each found fragments
   MidasFile* m_MidasFile;
+  MidasChannelMap* m_MidasChannel;
   
 private: // Manage the Fragment Bank
   void Build(unsigned int NumberOfFragment);
@@ -107,9 +111,9 @@ private: // Process the data from the file
   void UnpackTigress(int *data, int size);
    
 private:
-  int fspc_list[2048];
+  //int fspc_list[2048];// an ordered list of the addresses of all channels for TIGRESS DAQ 
 	void fill_fspc_list();
-	int FSPC_to_channel(int);
+	//int FSPC_to_channel(int);
   
 private: // Root output
   TFile* m_RootFile;

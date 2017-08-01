@@ -1,8 +1,14 @@
-#include"MidasBank.h"
-#include"VUserPoint.h"
-#include"UnpackerOptionManager.h"
-#include<cstdlib>
-#include<bitset>
+//c++
+#include <fstream>
+#include <sstream>
+#include <bitset>
+#include <cstdlib>
+
+//Unpacker
+#include "MidasBank.h"
+#include "VUserPoint.h"
+#include "UnpackerOptionManager.h"
+
 MidasBank* MidasBank::instance = NULL;
 ////////////////////////////////
 MidasBank* MidasBank::getInstance(){
@@ -23,6 +29,7 @@ void MidasBank::Destroy(){
 MidasBank::MidasBank(){
   m_Offset =1;
   m_BankSize=0;
+  m_MidasChannel = MidasChannelMap::getInstance();
   fill_fspc_list();
   m_CurrentEvent = new TMidasEvent(3000);
   m_RootFile = NULL;
@@ -261,12 +268,17 @@ void MidasBank::UnpackTigress(int *data, int size)	{
   int error =0;
   int current_eventId = -1;
   EventFragment* eventfragment = new EventFragment;
-
   for(int x=0; x<size ;x++)	{
     int dword =	*(data+x);
     unsigned int type	=	(dword & 0xf0000000);
+    unsigned int type2  = (dword & 0xf0000000) >> 28;
     int value =	(dword & 0x0fffffff);
     int port,slave,channel;
+    //cout << " dword " << std::hex << dword << " " << std::bitset<32> ( dword )<< endl; 
+    //cout << " value " << std::hex << value << " " << std::bitset<32> ( value )<< endl;
+    //cout << " type  " << std::hex << type << " " << std::bitset<32> ( type )<< endl;
+    //cout << " type2 " << std::hex << type2 << " " << std::bitset<32> ( type2 )<< endl;
+    //cout << " --  " << std::dec << temp << " " << std::hex << temp << endl ; 
 
     switch(type)	{
       case 0x00000000: // waveform data
@@ -276,20 +288,16 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           temp = (temp & 0x00001fff) + 1;
           eventfragment->wave[eventfragment->samplesfound++] = -temp;
         }
-
         else {
           eventfragment->wave[eventfragment->samplesfound++] = value & 0x00001fff;
         }
 
         if ((value >> 14) & 0x00002000) {
           int temp =  (value >> 14) & 0x00003fff;
-
           temp = ~temp;
           temp = (temp & 0x00001fff) + 1;
-
           eventfragment->wave[eventfragment->samplesfound++] = -temp;
         }
-
         else {
           eventfragment->wave[eventfragment->samplesfound++] = (value >> 14) & 0x00001fff;
         }
@@ -309,23 +317,42 @@ void MidasBank::UnpackTigress(int *data, int size)	{
       case 0x50000000: // Charge
         eventfragment->found_charge = true;
         if(eventfragment->tig10)	{
-          eventfragment->overflow = (value & 0x0f000000)>>12;
-          eventfragment->pileup   = (value & 0x00f00000)>>10;
-          eventfragment->charge	  = (value & 0x0fffffff);
+          //eventfragment->overflow = (value & 0x0f000000)>>12;
+          //eventfragment->pileup   = (value & 0x00f00000)>>10;
+          //eventfragment->charge	  = (value & 0x0fffffff);
+          eventfragment->overflow  = (value & 0x08000000)>>26;
+          eventfragment->pileup   = (value & 0x02000000)>>25;
+          if((value & 0x02000000) != 0u) { // true if there's pile-up
+            eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
+          } else {
+             eventfragment->charge = (value & 0x03ffffff)/eventfragment->integration;
+          }
         }
-        else if(eventfragment->tig64) {
-          eventfragment->overflow = (value & 0x0f000000)>>12;
-          eventfragment->pileup   = (value & 0x00f00000)>>10;
-          eventfragment->charge	  = (value & 0x0fffffff);
+        else if(eventfragment->tig64) {  
+          eventfragment->overflow = (value & 0x00800000)>>22;
+          eventfragment->pileup   = (value & 0x00200000)>>21;  
+          if((value & 0x00200000) != 0u) { // true if there's pile-up
+             eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x001fffff)) & 0x001fffff) + 1);
+          } else {
+             eventfragment->charge = ((value & 0x003fffff))/eventfragment->integration;
+          }
         }
         else{ 
-          printf("%i  problem extracting charge.\n", error++);
+          printf("%i  problem extracting charge, card type is not identified (using tig-10 by default).\n", error++);
           eventfragment->found_charge = false;
+          eventfragment->overflow = (value & 0x08000000)>>26;
+          eventfragment->pileup   = (value & 0x02000000)>>25;
+          if((value & 0x02000000) != 0u) { // true if there's pile-up
+             eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
+          } else {
+             eventfragment->charge = (value & 0x03ffffff)/eventfragment->integration;
+          }
         }
         break;
 
       case 0x60000000: // leading edge
-        eventfragment->led = (value & 0x0ffffff0)>2;
+        //eventfragment->led = (value & 0x0ffffff0)>2;
+        eventfragment->led = (value & 0x0ffffff0)>>4;
         break;
       case 0x80000000: // Event header
         current_eventId = (value & 0x00ffffff);
@@ -413,22 +440,32 @@ void MidasBank::UnpackTigress(int *data, int size)	{
                       break;
       case 0xc0000000: // port info,  New Channel
                       eventfragment->found_channel = true;
-                      eventfragment->channel =  FSPC_to_channel(dword & 0x00ffffff);
-
+                      //eventfragment->channel =  FSPC_to_channel(dword & 0x00ffffff);
+                      eventfragment->channel =  m_MidasChannel->GetChannelNumber(dword & 0x00ffffff);
                       slave   = (dword & 0x00f00000)>>20;
                       port    = (dword & 0x00000f00)>>8;
                       channel = (dword & 0x000000ff);
-
                       eventfragment->channel_raw =  dword & 0x00ffffff ;
-                      if(slave==1)
+                      if(m_MidasChannel->GetDigitizerType(dword & 0x00ffffff)==64){
+                        eventfragment->tig10 = false;
                         eventfragment->tig64 = true;
-                      else
+                        eventfragment->integration->GetGetIntegration(dword & 0x00ffffff)
+                      }
+                      else if (m_MidasChannel->GetDigitizerType(dword & 0x00ffffff)==10){
                         eventfragment->tig10 = true;
+                        eventfragment->tig64 = false;
+                        eventfragment->integration->GetGetIntegration(dword & 0x00ffffff)
+                      }
+                      else{
+                        eventfragment->tig10 = false;
+                        eventfragment->tig64 = false;
+                        eventfragment->integration->GetGetIntegration(dword & 0x00ffffff)
+                      }
                       break;
       case 0xe0000000: // Event Trailer
                      if(current_eventId!=(value&0x00ffffff))
-                       cout << "Event trailer does not match event id" << endl;
-                        eventfragment->found_trailer = true; 
+                        cout << "Event trailer does not match event id" << endl;
+                      eventfragment->found_trailer = true; 
                       break;
       case 0xf0000000: // EventBuilder Timeout
                       cout << "Event builder error, builder timed out ,found type: " << hex <<  type << " word: " << hex << dword ;
@@ -452,42 +489,87 @@ void MidasBank::UnpackTigress(int *data, int size)	{
   if(eventfragment && !(eventfragment->found_time && eventfragment->found_charge && eventfragment->found_channel&&eventfragment->found_eventID&& eventfragment->found_trailer)){
     delete eventfragment;
     cout << "\nincomplete fragment remain" << endl;
-    cout << "\t?found time    " << eventfragment->found_time   << endl;
-    cout << "\t?found charge  " << eventfragment->found_charge << endl;
-    cout << "\t?found channel " << eventfragment->found_channel << endl;
-    cout << "\t?found eventID " << eventfragment->found_eventID << endl;
-    cout << "\t?found trailer " << eventfragment->found_trailer << endl;
+    //cout << "\t?found time    " << eventfragment->found_time   << endl;
+    //cout << "\t?found charge  " << eventfragment->found_charge << endl;
+    //cout << "\t?found channel " << eventfragment->found_channel << endl;
+    //cout << "\t?found eventID " << eventfragment->found_eventID << endl;
+    //cout << "\t?found trailer " << eventfragment->found_trailer << endl;
   }
 }
 
 
 //////////////
 void MidasBank::fill_fspc_list()	{
-  fstream infile;
-  infile.open("fspc2ch.h");
-  int index = 0;
-  if(infile.is_open() )	{
-    string line;
-    while( getline(infile,line) )	{
-      fspc_list[index] = (int)strtol(line.c_str(),NULL,16);		  
-      index++;
+ 
+  string FSPCPath="Config.txt";
+  ifstream FSPCFile;
+  FSPCFile.open(FSPCPath.c_str());
+  
+  if(!FSPCFile.is_open()) {cout << "Error: FSPC File: " << FSPCPath << " not found " << endl ; exit(1);}
+  else {cout << "Midas Bank is Reading FSPC file : " << FSPCPath << endl ;}
+  
+  string LineBuffer, DataBuffer;
+  string ChannelNumberStr, FSPCAddressStr, CardTypeStr, Mnemonic;
+  int    ChannelNumber,FSPCAddress, CardType;
+  string CalibCoeffStr;
+  vector<double> CalibCoeff;
+
+  while(!FSPCFile.eof()){
+    getline(FSPCFile,LineBuffer);
+    if (LineBuffer.size()==0) continue;
+    CalibCoeff.clear();
+    stringstream myLine(LineBuffer);
+    myLine >> DataBuffer >> ChannelNumberStr 
+           >> DataBuffer >> FSPCAddressStr 
+           >> DataBuffer >> CardTypeStr 
+           //>> DataBuffer >> IntegrationStr 
+           >> Mnemonic
+           >> DataBuffer;
+    
+    unsigned index=0;
+    double coef; 
+    while(myLine>>CalibCoeffStr){
+      //cout << index << " " << CalibCoeffStr << " ";
+      stringstream(CalibCoeffStr) >> coef;
+      CalibCoeff.push_back(coef);
+      index++;       
     }
+
+    ChannelNumberStr = ChannelNumberStr.substr(0,ChannelNumberStr.length()-1);
+    stringstream(ChannelNumberStr) >> ChannelNumber;
+
+    FSPCAddressStr = FSPCAddressStr.substr(0,FSPCAddressStr.length()-1);
+    FSPCAddress = (int)strtol(FSPCAddressStr.c_str(),NULL,16);
+
+    //IntegrationStr = IntegrationStr.substr(0,IntegrationStr.length()-1);
+    //stringstream(IntegrationStr) >> Integration;
+
+    CardTypeStr = CardTypeStr.substr(0,CardTypeStr.length()-1);
+    CardTypeStr = CardTypeStr.substr(3,CardTypeStr.length());
+    stringstream(CardTypeStr) >> CardType;
+  
+    int Integration = 125;
+    if (CardType==64) 
+      Integration=25; 
+
+    if(FSPCAddress==-1) continue; // skip the empty channels
+    m_MidasChannel->PushBackChannel(ChannelNumber,FSPCAddress,CardType, Integration, Mnemonic, CalibCoeff);
+    //m_MidasChannel->PrintChannel(FSPCAddress);
   }
 
-  if(index < 2048)	{
-    while(index<2048)	{
-      fspc_list[index++] = 0;
-    }
-  }
+  cout << " Total number of operational channels " << m_MidasChannel->GetSize() << endl;
+
 }
 
 //////////////
+/*
 int MidasBank::FSPC_to_channel(int fspc)	{
   for(int i=0;i<2048;i++) {
     if(fspc==fspc_list[i]){return i;}
   }
+  cout << " Warning address " << std::hex << fspc << " is not found in the list " << endl;   
   return -1;
-}
+}*/
 
 //////////////
 void MidasBank::SetRootFile(string infile){
