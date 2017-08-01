@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include<cstdlib>
+#include <cstdlib>
 using namespace std;
 /////////////////////////
 Tigress::Tigress(){
