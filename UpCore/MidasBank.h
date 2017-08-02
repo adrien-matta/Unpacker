@@ -12,6 +12,7 @@ using namespace std;
 // ROOT
 #include "TFile.h"
 #include "TTree.h"
+#include "TRandom3.h"
 
 // Unpacker
 #include "MidasChannelMap.h"
@@ -119,6 +120,7 @@ private: // Root output
   TFile* m_RootFile;
   TTree* m_RootTree;
   TMidasEvent* m_CurrentEvent;
+  TRandom3* m_Random;
   
 public: // Manage the Root Output
   void SetRootFile(string infile="");

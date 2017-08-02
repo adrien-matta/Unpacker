@@ -34,6 +34,7 @@ MidasBank::MidasBank(){
   m_CurrentEvent = new TMidasEvent(3000);
   m_RootFile = NULL;
   m_RootTree = NULL;
+  m_Random = new TRandom3();
 
   string infile = UnpackerOptionManager::getInstance()->GetInputFileName();
   MidasFile* myMidasFile = new MidasFile();
@@ -317,35 +318,41 @@ void MidasBank::UnpackTigress(int *data, int size)	{
       case 0x50000000: // Charge
         eventfragment->found_charge = true;
         if(eventfragment->tig10)	{
-          //eventfragment->overflow = (value & 0x0f000000)>>12;
-          //eventfragment->pileup   = (value & 0x00f00000)>>10;
-          //eventfragment->charge	  = (value & 0x0fffffff);
+          double rand = m_Random->Uniform();
           eventfragment->overflow  = (value & 0x08000000)>>26;
           eventfragment->pileup   = (value & 0x02000000)>>25;
           if((value & 0x02000000) != 0u) { // true if there's pile-up
             eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
+            eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
           } else {
-             eventfragment->charge = (value & 0x03ffffff)/eventfragment->integration;
+             eventfragment->charge = (value & 0x03ffffff);
+             eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
           }
         }
-        else if(eventfragment->tig64) {  
+        else if(eventfragment->tig64) {
+          double rand = m_Random->Uniform();  
           eventfragment->overflow = (value & 0x00800000)>>22;
           eventfragment->pileup   = (value & 0x00200000)>>21;  
           if((value & 0x00200000) != 0u) { // true if there's pile-up
              eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x001fffff)) & 0x001fffff) + 1);
+             eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
           } else {
-             eventfragment->charge = ((value & 0x003fffff))/eventfragment->integration;
+             eventfragment->charge = ((value & 0x003fffff));
+             eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
           }
         }
         else{ 
           printf("%i  problem extracting charge, card type is not identified (using tig-10 by default).\n", error++);
           eventfragment->found_charge = false;
+          double rand = m_Random->Uniform();
           eventfragment->overflow = (value & 0x08000000)>>26;
           eventfragment->pileup   = (value & 0x02000000)>>25;
           if((value & 0x02000000) != 0u) { // true if there's pile-up
              eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
+             eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
           } else {
-             eventfragment->charge = (value & 0x03ffffff)/eventfragment->integration;
+             eventfragment->charge = (value & 0x03ffffff);
+             eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
           }
         }
         break;
