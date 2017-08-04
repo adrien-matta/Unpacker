@@ -4,7 +4,7 @@ Preparation:
 
 Installation 
  - make sure that unpacker.sh and scripts/unpacker-cleaner.sh etc.. are all executables (> chmod u+x filename.sh)
- - > cd unpacker
+ - > cd Unpacker
  - > source unpacker.sh // (or add it to bashrc)
  - > ./scripts/unpacker-cleaner // (Cleaning gets you to the pre-cmake stage! only use it if need be)
  - > cmake ./    
