@@ -63,7 +63,8 @@ struct EventFragment	{
 	int samplesfound;
   int* wave;
   
-  EventFragment():found_time(false), found_charge(false), found_channel(false),found_trailer(false),charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),cfd(0),led(0),triggerpattern(0),timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),samplesfound(0){wave=new int[2880];}
+  //intiate with default
+  EventFragment():tig10(false),tig64(false),IsBad(false),found_time(false), found_charge(false), found_channel(false),found_trailer(false),charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),cfd(0),led(0),triggerpattern(0),timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),samplesfound(0){wave=new int[2880];}
   ~EventFragment(){delete wave;}
   
 };
@@ -93,6 +94,8 @@ private: // Manage the Fragment Bank
   void PushBackFragment();
   void InitTree();
   
+private: // channel status
+  map< int,bool > m_BadChannel;
 
 public: // call by the user to process the bank
   void Process(unsigned int NumberOfFragment);
@@ -110,7 +113,8 @@ private:
 private: // Process the data from the file
   void UnPackMidasBank(MidasEventFragment* fragment);
   void UnpackTigress(int *data, int size);
-   
+  void ReadAnalysisConfig();
+
 private:
   //int fspc_list[2048];// an ordered list of the addresses of all channels for TIGRESS DAQ 
 	void fill_fspc_list();
