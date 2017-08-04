@@ -77,7 +77,7 @@ void MidasChannelMap::PrintAllChannels(){
   int MidasChannelMap::GetChannelNumber(int FSPC){ 
     it = m_ChannelMap.find(FSPC); 
     if (it == m_ChannelMap.end()) {
-      cout << " Warning: address " << std::hex << FSPC << " is not found in the list " << endl;   
+      //cout << " Warning: address " << std::hex << FSPC << " is not found in the list " << endl;   
       return -1 ; 
     }
     return m_ChannelMap[FSPC]->ChannelNumber; 
