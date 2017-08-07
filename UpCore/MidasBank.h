@@ -13,6 +13,7 @@ using namespace std;
 #include "TFile.h"
 #include "TTree.h"
 #include "TRandom3.h"
+#include "TH1F.h"
 
 // Unpacker
 #include "MidasChannelMap.h"
@@ -106,6 +107,8 @@ public: // Manage the Midas File
   
 private:
   unsigned int m_BankSize;
+  unsigned int m_AllFragment;
+  unsigned int m_GoodFragment;
   
 private:
    static MidasBank* instance;
@@ -116,15 +119,13 @@ private: // Process the data from the file
   void ReadAnalysisConfig();
 
 private:
-  //int fspc_list[2048];// an ordered list of the addresses of all channels for TIGRESS DAQ 
 	void fill_fspc_list();
-	//int FSPC_to_channel(int);
   
 private: // Root output
   TFile* m_RootFile;
   TTree* m_RootTree;
-  TMidasEvent* m_CurrentEvent;
   TRandom3* m_Random;
+  TMidasEvent* m_CurrentEvent;
   
 public: // Manage the Root Output
   void SetRootFile(string infile="");

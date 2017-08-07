@@ -29,6 +29,8 @@ void MidasBank::Destroy(){
 MidasBank::MidasBank(){
   m_Offset =1;
   m_BankSize=0;
+  m_AllFragment=0;
+  m_GoodFragment=0;
   m_MidasChannel = MidasChannelMap::getInstance();
   fill_fspc_list();
   ReadAnalysisConfig();
@@ -124,7 +126,7 @@ void MidasBank::Process(unsigned int NumberOfFragment){
       m_CurrentEvent->Clear();
       // Fill the event with the new fragment
       unsigned int mysize = m_eventfragment.size();
-      for(unsigned int g = 0 ; g < mysize ; g++){
+      for(unsigned int g = 0 ; g < mysize ; g++){ // loops on all fragments in one event
         m_CurrentEvent->tig_num_chan=mysize;
         m_CurrentEvent->tig_event_id= currentID;
         m_CurrentEvent->tig_midas_id.push_back( m_eventfragment[g]->midasId);
@@ -201,12 +203,15 @@ void MidasBank::Process(unsigned int NumberOfFragment){
           <<" Unknown digitizer : " << UnknownFragment  << flush;
       }
     }
-
   }
 
-  cout << endl << "\r Processing terminated: "
+  cout << endl << "Processing terminated: "
     << NumberFragment<< " fragments treated"
     <<", " << EventNumber << " Events reconstructed " << endl ;
+
+  cout << " All read fragments " << m_AllFragment 
+       << "     good Fragments " << m_GoodFragment 
+       << "      ratio:" << 100.0* m_GoodFragment/m_AllFragment << endl ;
 
   cout << "Missing " << m_FragmentBank.size() << endl ;
   user_point->EndOfRunAction();
@@ -270,18 +275,19 @@ void MidasBank::UnpackTigress(int *data, int size)	{
   int error =0;
   int current_eventId = -1;
 
+  //cout << " ----------------- " << size << endl ; 
   // the fragment contains data words of size 
   EventFragment* eventfragment = new EventFragment; 
   for(int x=0; x<size ;x++)	{
     int dword =	*(data+x);
-    unsigned int type	=	(dword & 0xf0000000);
-    unsigned int type2  = (dword & 0xf0000000) >> 28;
-    int value =	(dword & 0x0fffffff);
+    unsigned int type	 =	(dword & 0xf0000000)>>28;
+    unsigned int value =	(dword & 0x0fffffff);
     int port,slave,channel;
-
+  
+    //std::cout << std::hex << type << " "  << value << std::endl;
     switch(type)	{
 
-      case 0x00000000: // waveform data
+      case 0x0: // waveform data
           if (value & 0x00002000) {
             int temp =  value & 0x00003fff;
             temp = ~temp;
@@ -303,24 +309,29 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           }
           break;
 
-      case 0x10000000: // trapeze data
+      case 0x1: // trapeze data
           //currently not used.
           break;
 
-      case 0x40000000: // CFD Time
+      case 0x4: // std::bitset<16> Time
           //time = true;
           eventfragment->found_time = true;
           eventfragment->slowrisetime = (value & 0x0000000f);
-          eventfragment->cfd = (value & 0x0ffffff0) >> 2;
+          eventfragment->cfd          = (value & 0x0ffffff0) >> 4;
+          //cout << hex << ((value & 0x0ffffff0) >> 2) << "\n" << ((value & 0x0ffffff0) >> 4) << endl; 
+          //cout << dec << ((value & 0x0ffffff0) >> 2) << "\n" << ((value & 0x0ffffff0) >> 4) <<endl ;
+          //cout << std::bitset<32>(value) << "\n" << std::bitset<32>((value & 0x0ffffff0)) <<endl ;
+          //cout << std::bitset<32>((value & 0x0ffffff0) >> 2) << "\n" << std::bitset<32>((value & 0x0ffffff0) >> 4) <<endl ;
+          //cin.get();
           eventfragment->cfd = eventfragment->cfd*10+eventfragment->slowrisetime*0.625;
           break;
 
-      case 0x50000000: // Charge
+      case 0x5: // Charge
           eventfragment->found_charge = true;
-          if(eventfragment->IsBad){ // ignore if channel is bad
+         /* if(eventfragment->IsBad){ // ignore if channel is bad
             break;
-          }
-          
+          }*/
+
           if(eventfragment->tig10)	{
             double rand = m_Random->Uniform();
             eventfragment->overflow  = (value & 0x08000000)>>26;
@@ -346,8 +357,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
             }
           }
           else{ 
-            cout << "ERROR: " << (error++) << ". INFO: Charge extracting problem, CHANNEL " << hex << eventfragment->channel_raw ;
-            cout << ". Unknown card type (Defaulting to tig-10) "<< endl ;
+            cout << "ERROR: " << (error++) << ". INFO: Charge extracting problem, CHANNEL " << hex << eventfragment->channel_raw ;            cout << ". Unknown card type (Defaulting to tig-10) "<< endl ;
             eventfragment->found_charge = false;
             double rand = m_Random->Uniform();
             eventfragment->overflow = (value & 0x08000000)>>26;
@@ -362,13 +372,13 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           }
           break;
 
-      case 0x60000000: // leading edge
-          //eventfragment->led = (value & 0x0ffffff0)>2;
+      case 0x6: // leading edge
           eventfragment->led = (value & 0x0ffffff0)>>4;
           break;
 
-      case 0x80000000: // Event header
-          current_eventId = (value & 0x00ffffff);
+      case 0x8: // Event header
+          current_eventId = (value & 0x00ffffff); // format: 0x80NNNNNN 
+          m_AllFragment++;
           break;
 
     /*  case 0xa0000000:{ // timestamp
@@ -435,7 +445,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           break;
       */
 
-      case 0xa0000000:
+      case 0xa:
         if((value & 0x0f000000)==0x00000000)
           eventfragment->timestamp_low = (value & 0x00ffffff);
         else if((value & 0x0f000000)==0x01000000)
@@ -450,11 +460,11 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           cout << "Time stamp datum incorrectly formatted : " << hex << dword << endl;
         }
 
-      case 0xb0000000: // Trigger Pattern
+      case 0xb: // Trigger Pattern
           eventfragment->triggerpattern = value;
           break;
 
-      case 0xc0000000: // port info, fspc,  New Channel
+      case 0xc: // port info, fspc,  New Channel
           eventfragment->found_channel = true;
           eventfragment->channel_raw =  dword & 0x00ffffff ; // 0x00[S00PCC]
           eventfragment->channel =  m_MidasChannel->GetChannelNumber(dword & 0x00ffffff);
@@ -477,18 +487,21 @@ void MidasBank::UnpackTigress(int *data, int size)	{
             eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
           }
           // tag bad channel
-          if(m_BadChannel[eventfragment->channel_raw]){ 
+         /* if(m_BadChannel[eventfragment->channel_raw]){ 
             eventfragment->IsBad=true;
-            }
+            }*/
+
           break;
 
-      case 0xe0000000: // Event Trailer
-         if(current_eventId!=(value&0x00ffffff))
-            cout << "Event trailer does not match event id" << endl;
-          eventfragment->found_trailer = true; 
+      case 0xe: // Event Trailer
+         if(current_eventId!=(value&0x00ffffff)){
+            eventfragment->found_trailer = false; 
+         }
+         eventfragment->found_trailer = true; 
+         //cin.get();
           break;
 
-      case 0xf0000000: // EventBuilder Timeout
+      case 0xf: // EventBuilder Timeout
           cout << "Event builder error, builder timed out ,found type: " << hex <<  type << " word: " << hex << dword ;
           break;
 
@@ -498,32 +511,37 @@ void MidasBank::UnpackTigress(int *data, int size)	{
     };
 
     // if the fragment is good and no missing information, push back on the event and make a new fragment
-    if(!eventfragment->IsBad 
-    && eventfragment->found_time && eventfragment->found_charge 
+    if(/*!eventfragment->IsBad 
+    &&*/ eventfragment->found_time && eventfragment->found_charge 
     && eventfragment->found_channel && eventfragment->found_trailer 
     && current_eventId>-1 ){
+      m_GoodFragment++;
+      //cout << " storing event " << current_eventId << "\n xxxxxxxxxxxxxxxx " << endl; 
       eventfragment->eventId = current_eventId;
       m_FragmentBank[current_eventId].push_back(eventfragment);
       ++m_BankSize;
-      if(x!=size-1)
+      if(x!=size-1){
+        cout << " Found a new fragment before reaching the size!!! \n " << endl; 
+        cin.get();
         eventfragment = new EventFragment; // start a new fragment
+      }
       else
         eventfragment = 0; // end of fragment
     }
 
-  }// end of for loop
+  }// end of for loop iterating on one fragment of the given size
 
   // if there's a fragment, that is not bad, but missing an information, inform and delete
-  if(eventfragment && !eventfragment->IsBad 
+  if(eventfragment /*&& !eventfragment->IsBad */
   && ! (eventfragment->found_time && eventfragment->found_charge 
   && eventfragment->found_channel && eventfragment->found_trailer
   && eventfragment->found_eventID) ){
-    cout << "\nincomplete fragment remain" << endl;
-    cout << "\t?found time    " << eventfragment->found_time   << endl;
+    cout << "\nincomplete fragment remain" <<  eventfragment->eventId << endl;
+    /*cout << "\t?found time    " << eventfragment->found_time   << endl;
     cout << "\t?found charge  " << eventfragment->found_charge << endl;
     cout << "\t?found channel " << eventfragment->found_channel << endl;
     cout << "\t?found eventID " << eventfragment->found_eventID << endl;
-    cout << "\t?found trailer " << eventfragment->found_trailer << endl;
+    cout << "\t?found trailer " << eventfragment->found_trailer << endl;*/
     delete eventfragment;
   }
 
@@ -604,7 +622,7 @@ void MidasBank::SetRootFile(string infile){
 
   string outfile(infile,(infile.find(".mid")-5),infile.find(".mid")-(infile.find(".mid")-5));
   outfile += ".root";
-  string temp = UnpackerOptionManager::getInstance()->GetBankOutputPath()+"raw";
+  string temp = UnpackerOptionManager::getInstance()->GetBankOutputPath()+"bank";
   outfile = temp+outfile;
   printf("Bank tree: %s\n",outfile.c_str());
   m_RootFile = new TFile(outfile.c_str(),"RECREATE");
