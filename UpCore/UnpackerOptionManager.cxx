@@ -1,7 +1,7 @@
-#include"UnpackerOptionManager.h"
-#include<cstdlib>
-#include<iostream>
-#include<stdio.h>
+#include "UnpackerOptionManager.h"
+#include <cstdlib>
+#include <iostream>
+#include <stdio.h>
 UnpackerOptionManager* UnpackerOptionManager::instance = 0;
 
 ////////////////////////////////////
@@ -47,9 +47,9 @@ void UnpackerOptionManager::ReadUserOption(int argc, char*argv[]){
     
     if (argument == "-H" || argument == "-h" || argument == "--help") DisplayHelp();
     
-    else if (argument == "--user-output-name" && argc >= i + 1) m_UserOutputName = argv[++i] ;
+    else if (argument == "--user-output-tree-name" && argc >= i + 1) m_UserOutputName = argv[++i] ;
     
-    else if (argument == "--bank-output-name" && argc >= i + 1) m_BankOutputName = argv[++i] ;
+    else if (argument == "--bank-output-tree-name" && argc >= i + 1) m_BankOutputName = argv[++i] ;
     
     else if (argument == "--user-output-path" && argc >= i + 1) m_UserOutputPath = argv[++i] ;
     
@@ -99,12 +99,12 @@ void UnpackerOptionManager::DisplayHelp(){
   
   cout << "/////////////////////////////// Option List ///////////////////////////////" << endl;
   cout << "-h -H --help \t \t \t Display this help" << endl ;
-  cout << "--user-output-name <arg> \t Set <arg> as the UserPoint issued TTree name " << endl;
-  cout << "--bank-output-name <arg> \t Set <arg> as the Bank issued TTree name " << endl;
-  cout << "--user-output-path <arg> \t Create the UserPoint issued TTree is path <arg> " << endl;
-  cout << "--bank-output-path <arg> \t Create the Bank issued TTree is path <arg> " << endl;
-  cout << "--intial-load <arg> \t \t Load the ban kinitially wtih <arg> fragment  " << endl;
-  cout << "--no-bank-tree \t \t \t The Bank issued TTRee is not generated (Run faster)" << endl;
+  cout << "--user-output-tree-name <arg> \t Set <arg> as the UserPoint issued TTree name " << endl;
+  cout << "--bank-output-tree-name <arg> \t Set <arg> as the Bank issued TTree name " << endl;
+  cout << "--user-output-path <arg> \t Create the UserPoint issued TTree in path <arg> " << endl;
+  cout << "--bank-output-path <arg> \t Create the Bank issued TTree in path <arg> " << endl;
+  cout << "--intial-load <arg> \t \t Load the bank initially with <arg> fragment  " << endl;
+  cout << "--no-bank-tree \t \t \t The Bank issued TTree is not generated (Run faster)" << endl;
   cout << "--no-user-point \t \t The UserPoint is not run at all" << endl;
   cout << "///////////////////////////////////////////////////////////////////////////" << endl;
 

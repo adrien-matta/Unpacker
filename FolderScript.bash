@@ -9,6 +9,6 @@ do
 if [ -f $DATANAME ]
   then echo $i already treated, ignored
 else
-  ./unpacker $i --user-output-name rawdata --no-bank-tree --user-output-path $2 --intial-load 1000000 --maximum-load 1000000
+  ./unpacker $i --user-output-tree-name rawdata --no-bank-tree --user-output-path $2 --intial-load 1000000 --maximum-load 1000000
 fi
 done
