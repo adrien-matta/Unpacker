@@ -47,7 +47,6 @@ struct EventFragment	{
 	int channel;
 	int channel_raw;
   
-  
 	int eventId;
 	int midasId;
   
@@ -82,7 +81,7 @@ public: // check if the singleton is already instantiate and return its pointer
   void   Destroy();
 private: // Bank of fragment and associate midas file
   map< int, vector<EventFragment*> > m_FragmentBank;
-  vector<EventFragment*> m_eventfragment;// store the different fragment until event is completed
+  vector<EventFragment*> m_EventFragmentVector;// store the different fragment until event is completed
   
   unsigned int m_Offset; // this offset is how many event to add at the end of the bank for each found fragments
   MidasFile* m_MidasFile;
@@ -106,8 +105,8 @@ public: // Manage the Midas File
   MidasFile* GetMidasFile();
   
 private:
-  unsigned int m_BankSize;
-  unsigned int m_AllFragment;
+  unsigned int m_FragBankSize;
+  unsigned int m_TotalFragment;
   unsigned int m_GoodFragment;
   
 private:
@@ -125,7 +124,7 @@ private: // Root output
   TFile* m_RootFile;
   TTree* m_RootTree;
   TRandom3* m_Random;
-  TMidasEvent* m_CurrentEvent;
+  TMidasEvent* m_CurrentMidasEvent;
   
 public: // Manage the Root Output
   void SetRootFile(string infile="");

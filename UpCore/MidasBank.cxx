@@ -28,13 +28,13 @@ void MidasBank::Destroy(){
 ////////////////////////////////
 MidasBank::MidasBank(){
   m_Offset =1;
-  m_BankSize=0;
-  m_AllFragment=0;
+  m_FragBankSize=0;
+  m_TotalFragment=0;
   m_GoodFragment=0;
   m_MidasChannel = MidasChannelMap::getInstance();
   fill_fspc_list();
   ReadAnalysisConfig();
-  m_CurrentEvent = new TMidasEvent(3000);
+  m_CurrentMidasEvent = new TMidasEvent(3000);
   m_RootFile = NULL;
   m_RootTree = NULL;
   m_Random = new TRandom3();
@@ -53,9 +53,16 @@ MidasBank::MidasBank(){
 ////////////////////////////////
 MidasBank::~MidasBank(){
   MidasBank::instance = NULL;
-  if(m_RootFile!=NULL){
-    m_RootTree->AutoSave();
+
+  // Save the Tree
+  if(m_RootTree)
+    m_RootTree->AutoSave("Overwrite");
+  
+  // Close the file
+  if(m_RootFile){
+    m_RootFile->Close();
   }
+
 }
 
 ////////////////////////////////
@@ -74,7 +81,7 @@ void MidasBank::Build(unsigned int NumberOfFragment){
 ////////////////////////////////
 void MidasBank::Clear(){
   m_FragmentBank.clear();
-  m_BankSize=0;
+  m_FragBankSize=0;
 }
 
 ////////////////////////////////
@@ -109,34 +116,34 @@ void MidasBank::Process(unsigned int NumberOfFragment){
   int position = 0;
   int EventNumber = 0;
   double average_fragment = 0;
-  double average_pushback = 0;
   int sizeBefore= 0 ;
   int sizeAfter=0 ;
   int NumberOfPushBack=0;
   unsigned int LastPosition = 0 ;
 
   // Loop over the rest of the element
-  while(m_BankSize!=0){
+  while(m_FragBankSize!=0){
     // loop over the fragment map
     for(it = m_FragmentBank.begin(); it!=m_FragmentBank.end();){
       currentID = it->first;
-      m_eventfragment = it->second;
+      m_EventFragmentVector = it->second;
       EventNumber++;
       // Clear the Fragment from precedent stuff
-      m_CurrentEvent->Clear();
+      m_CurrentMidasEvent->Clear();
       // Fill the event with the new fragment
-      unsigned int mysize = m_eventfragment.size();
-      for(unsigned int g = 0 ; g < mysize ; g++){ // loops on all fragments in one event
-        m_CurrentEvent->tig_num_chan=mysize;
-        m_CurrentEvent->tig_event_id= currentID;
-        m_CurrentEvent->tig_midas_id.push_back( m_eventfragment[g]->midasId);
+      unsigned int numFrag = m_EventFragmentVector.size();
+      m_CurrentMidasEvent->tig_num_chan=numFrag;
+      m_CurrentMidasEvent->tig_event_id=currentID;
 
-        if(m_eventfragment[g]->tig10){
-          m_CurrentEvent->tig_type.push_back(0);
+      for(unsigned int g = 0 ; g < numFrag ; g++){ // loops on all fragments in one event
+
+        m_CurrentMidasEvent->tig_midas_id.push_back( m_EventFragmentVector[g]->midasId);
+        if(m_EventFragmentVector[g]->tig10){
+          m_CurrentMidasEvent->tig_type.push_back(0);
           NumberFragment++;
         }
-        else if(m_eventfragment[g]->tig64){
-          m_CurrentEvent->tig_type.push_back(1);
+        else if(m_EventFragmentVector[g]->tig64){
+          m_CurrentMidasEvent->tig_type.push_back(1);
           NumberFragment++;
         }
         else{
@@ -144,18 +151,18 @@ void MidasBank::Process(unsigned int NumberOfFragment){
           UnknownFragment++;
         }
 
-        m_CurrentEvent->channel_number.push_back(m_eventfragment[g]->channel);
-        m_CurrentEvent->channel_raw.push_back(m_eventfragment[g]->channel_raw);
-        m_CurrentEvent->cfd_value.push_back(m_eventfragment[g]->cfd);
-        m_CurrentEvent->led_value.push_back(m_eventfragment[g]->led);
-        m_CurrentEvent->charge_raw.push_back(m_eventfragment[g]->charge);
-        m_CurrentEvent->charge_cal.push_back(m_eventfragment[g]->charge);
+        m_CurrentMidasEvent->channel_number.push_back(m_EventFragmentVector[g]->channel);
+        m_CurrentMidasEvent->channel_raw.push_back(m_EventFragmentVector[g]->channel_raw);
+        m_CurrentMidasEvent->cfd_value.push_back(m_EventFragmentVector[g]->cfd);
+        m_CurrentMidasEvent->led_value.push_back(m_EventFragmentVector[g]->led);
+        m_CurrentMidasEvent->charge_raw.push_back(m_EventFragmentVector[g]->charge);
+        m_CurrentMidasEvent->charge_cal.push_back(m_EventFragmentVector[g]->charge);
 
-        m_CurrentEvent->timestamp_low.push_back(m_eventfragment[g]->timestamp_low);
-        m_CurrentEvent->timestamp_high.push_back(m_eventfragment[g]->timestamp_high);
-        m_CurrentEvent->timestamp_live.push_back(m_eventfragment[g]->timestamp_live);
-        m_CurrentEvent->timestamp_tr.push_back(m_eventfragment[g]->timestamp_tr); 
-        m_CurrentEvent->timestamp_ta.push_back(m_eventfragment[g]->timestamp_ta); 
+        m_CurrentMidasEvent->timestamp_low.push_back(m_EventFragmentVector[g]->timestamp_low);
+        m_CurrentMidasEvent->timestamp_high.push_back(m_EventFragmentVector[g]->timestamp_high);
+        m_CurrentMidasEvent->timestamp_live.push_back(m_EventFragmentVector[g]->timestamp_live);
+        m_CurrentMidasEvent->timestamp_tr.push_back(m_EventFragmentVector[g]->timestamp_tr); 
+        m_CurrentMidasEvent->timestamp_ta.push_back(m_EventFragmentVector[g]->timestamp_ta); 
 
         int name_offset = 0;
         while(gDirectory->FindObjectAny(Form("wf_%i",name_offset))){
@@ -163,43 +170,42 @@ void MidasBank::Process(unsigned int NumberOfFragment){
         }
         name_offset++;
 
-        if(m_eventfragment[g]->samplesfound>0){
-
-          TH1F h  = TH1F(Form("wf_%i",name_offset),Form("wf_%i",name_offset),m_eventfragment[g]->samplesfound,0,m_eventfragment[g]->samplesfound);
+        if(m_EventFragmentVector[g]->samplesfound>0){
+          TH1F h  = TH1F(Form("wf_%i",name_offset),Form("wf_%i",name_offset),m_EventFragmentVector[g]->samplesfound,0,m_EventFragmentVector[g]->samplesfound);
           h.SetDirectory(0);
-          for(int wl = 0 ; wl<m_eventfragment[g]->samplesfound ;wl++){
-            h.Fill(wl,m_eventfragment[g]->wave[wl]);
+          for(int wl = 0 ; wl<m_EventFragmentVector[g]->samplesfound ;wl++){
+            h.Fill(wl,m_EventFragmentVector[g]->wave[wl]);
           }
-          m_CurrentEvent->waveform.push_back(h);
+          m_CurrentMidasEvent->waveform.push_back(h);
         }
-
         else{
           TH1F h  = TH1F(Form("wf_%i",name_offset),Form("wf_%i",name_offset),1,0,1);
-          m_CurrentEvent->waveform.push_back(h);  
-
+          m_CurrentMidasEvent->waveform.push_back(h);  
         }
-        average_fragment+=(1./(EventNumber))*(m_eventfragment.size()-average_fragment);
-        delete m_eventfragment[g];
+
+        average_fragment+=(1./(EventNumber))*(m_EventFragmentVector.size()-average_fragment);
+        delete m_EventFragmentVector[g];
       }
 
-      user_point->EventAction(m_CurrentEvent);
+      user_point->EventAction(m_CurrentMidasEvent);
 
       if(m_RootFile!=NULL)
         m_RootTree->Fill();
 
-      m_eventfragment.clear();
+      m_EventFragmentVector.clear();
       // remove the entry
-      it = m_FragmentBank.erase(it);
-      m_BankSize-=mysize;
+      it = m_FragmentBank.erase(it); // the returned iterator points to the next element
+      m_FragBankSize-=numFrag;
       // add some more to replace the removed one
-      for(int i = 0 ; i < mysize ; i++){
+      for(int i = 0 ; i < numFrag ; i++){
         PushBackFragment();
       }
+
       if(EventNumber%10000==0){
         cout << "\r  " << NumberFragment/1000000. << "M frag. treated |"
           <<" Build:  " << EventNumber<<" |"
-          <<" Avg. size: " << average_fragment << " Avg.PB: " << average_pushback <<" |"
-          <<" Bank size : " << m_BankSize<<" |"
+          <<" Avg. size: " << average_fragment <<" |"
+          <<" Bank size: " << m_FragBankSize<<" |"
           <<" Unknown digitizer : " << UnknownFragment  << flush;
       }
     }
@@ -207,13 +213,15 @@ void MidasBank::Process(unsigned int NumberOfFragment){
 
   cout << endl << "Processing terminated: "
     << NumberFragment<< " fragments treated"
-    <<", " << EventNumber << " Events reconstructed " << endl ;
-
-  cout << " All read fragments " << m_AllFragment 
-       << "     good Fragments " << m_GoodFragment 
-       << "      ratio:" << 100.0* m_GoodFragment/m_AllFragment << endl ;
+    <<"\t" << EventNumber << " Events reconstructed " << endl ;
+  cout << m_TotalFragment << " ALL read fragments\t"  
+       << m_GoodFragment  << " good Fragments "  
+       << "      ratio:" << 100.0* m_GoodFragment/m_TotalFragment << endl ;
 
   cout << "Missing " << m_FragmentBank.size() << endl ;
+  cout << "Remaining BankSize " << m_FragBankSize << endl ;
+  cout << "Last treated event " << currentID << endl ;
+
   user_point->EndOfRunAction();
 }
 
@@ -378,7 +386,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
 
       case 0x8: // Event header
           current_eventId = (value & 0x00ffffff); // format: 0x80NNNNNN 
-          m_AllFragment++;
+          m_TotalFragment++;
           break;
 
     /*  case 0xa0000000:{ // timestamp
@@ -519,7 +527,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
       //cout << " storing event " << current_eventId << "\n xxxxxxxxxxxxxxxx " << endl; 
       eventfragment->eventId = current_eventId;
       m_FragmentBank[current_eventId].push_back(eventfragment);
-      ++m_BankSize;
+      ++m_FragBankSize;
       if(x!=size-1){
         cout << " Found a new fragment before reaching the size!!! \n " << endl; 
         cin.get();
@@ -620,13 +628,16 @@ void MidasBank::SetRootFile(string infile){
   if(infile.find(".mid") == infile.npos)
   { printf("can't read midas file\n"); return ; }
 
-  string outfile(infile,(infile.find(".mid")-5),infile.find(".mid")-(infile.find(".mid")-5));
+  string outfile(infile,(infile.find(".mid")-9),infile.find(".mid")-(infile.find(".mid")-9));
   outfile += ".root";
   string temp = UnpackerOptionManager::getInstance()->GetBankOutputPath()+"bank";
   outfile = temp+outfile;
   printf("Bank tree: %s\n",outfile.c_str());
+  //gDirectory->cd();
   m_RootFile = new TFile(outfile.c_str(),"RECREATE");
   if(!m_RootFile->IsOpen()) { printf("issues opening the root output file....\n");exit(1); }
+ 
+  cout << "Creating bank tree : " << UnpackerOptionManager::getInstance()->GetBankOutputName() << endl;
 
 }
 
@@ -634,7 +645,10 @@ void MidasBank::SetRootFile(string infile){
 void MidasBank::InitTree(){
   if(m_RootFile!=NULL){
     m_RootTree = new TTree(UnpackerOptionManager::getInstance()->GetBankOutputName().c_str(),UnpackerOptionManager::getInstance()->GetBankOutputName().c_str());
-    m_RootTree->Branch( "MidasEvent" , "TMidasEvent" , &m_CurrentEvent );
+    m_RootTree->Branch( "MidasEvent" , "TMidasEvent" , &m_CurrentMidasEvent );
+  }
+  else {
+    printf("The bank root file is not opened....\n");exit(1);
   }
 }
 
