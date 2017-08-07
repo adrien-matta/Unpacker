@@ -1,9 +1,9 @@
-#include"Trifoil.h"
+#include "Trifoil.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include<cstdlib>
+#include <cstdlib>
 using namespace std;
 
 /////////////////////////
@@ -41,15 +41,12 @@ void Trifoil::ReadFSPCFile(string FSPCPath){
   int    ChannelNumber;
   while(!FSPCFile.eof()){
     getline(FSPCFile,LineBuffer);
-    /* Typical line to analyse:
-# 2005: Address 0x00900800, type 8, TRF00XL00X [Trifoil (Waveform) 0x0a00700] 
-*/
     stringstream myLine(LineBuffer);
     myLine >> DataBuffer >> ChannelNumberStr >> DataBuffer >> DataBuffer >> DataBuffer >> DataBuffer >> DetectorName  ;
     ChannelNumberStr = ChannelNumberStr.substr(0,ChannelNumberStr.length()-1);
     stringstream(ChannelNumberStr) >> ChannelNumber;
 
-    if(DetectorName=="TRF00XL00X"){
+    if(DetectorName=="TRF00XLx"){ //  TRF00XL00X
       m_FSPC_Channel=ChannelNumber;
     }
   }
