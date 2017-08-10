@@ -64,7 +64,12 @@ struct EventFragment	{
   int* wave;
   
   //intiate with default
-  EventFragment():tig10(false),tig64(false),IsBad(false),found_time(false), found_charge(false), found_channel(false),found_trailer(false),charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),cfd(0),led(0),triggerpattern(0),timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),samplesfound(0){wave=new int[2880];}
+  EventFragment():tig10(false),tig64(false),IsBad(false),
+  found_time(false), found_charge(false), found_channel(false), found_trailer(false), found_eventID(false),
+  charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),
+  cfd(0),led(0),triggerpattern(0),
+  timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),
+  samplesfound(0){wave=new int[2880];}
   ~EventFragment(){delete wave;}
   
 };
@@ -105,10 +110,12 @@ public: // Manage the Midas File
   MidasFile* GetMidasFile();
   
 private:
-  unsigned int m_FragBankSize;
-  unsigned int m_TotalFragment;
-  unsigned int m_GoodFragment;
-  
+  unsigned int m_FragBankSize; // Dynamic number of the fragments in the bank
+  unsigned int m_TotalFragment; // Fragments found
+  unsigned int m_CompleteFragment;  // Fragments having all expected info
+  unsigned int m_IncompleteFragment;   // Fragments not having all expected info
+  unsigned int m_UserBadFragment; // Fragments suppressed from user-defined bad channels
+
 private:
    static MidasBank* instance;
   
