@@ -295,7 +295,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
 
   //cout << " ----------------- " << size << endl ; 
   // the fragment contains data words of size 
-  EventFragment* eventfragment = new EventFragment; 
+  EventFragment* fragment = new EventFragment; 
   for(int x=0; x<size ;x++)	{
     int dword =	*(data+x);
     unsigned int type	 =	(dword & 0xf0000000)>>28;
@@ -310,20 +310,20 @@ void MidasBank::UnpackTigress(int *data, int size)	{
             int temp =  value & 0x00003fff;
             temp = ~temp;
             temp = (temp & 0x00001fff) + 1;
-            eventfragment->wave[eventfragment->samplesfound++] = -temp;
+            fragment->wave[fragment->samplesfound++] = -temp;
           }
           else {
-            eventfragment->wave[eventfragment->samplesfound++] = value & 0x00001fff;
+            fragment->wave[fragment->samplesfound++] = value & 0x00001fff;
           }
 
           if ((value >> 14) & 0x00002000) {
             int temp =  (value >> 14) & 0x00003fff;
             temp = ~temp;
             temp = (temp & 0x00001fff) + 1;
-            eventfragment->wave[eventfragment->samplesfound++] = -temp;
+            fragment->wave[fragment->samplesfound++] = -temp;
           }
           else {
-            eventfragment->wave[eventfragment->samplesfound++] = (value >> 14) & 0x00001fff;
+            fragment->wave[fragment->samplesfound++] = (value >> 14) & 0x00001fff;
           }
           break;
 
@@ -333,73 +333,73 @@ void MidasBank::UnpackTigress(int *data, int size)	{
 
       case 0x4: // std::bitset<16> Time
           //time = true;
-          eventfragment->found_time = true;
-          eventfragment->slowrisetime = (value & 0x0000000f);
-          eventfragment->cfd          = (value & 0x0ffffff0) >> 4;
+          fragment->found_time = true;
+          fragment->slowrisetime = (value & 0x0000000f);
+          fragment->cfd          = (value & 0x0ffffff0) >> 4;
           //cout << hex << ((value & 0x0ffffff0) >> 2) << "\n" << ((value & 0x0ffffff0) >> 4) << endl; 
           //cout << dec << ((value & 0x0ffffff0) >> 2) << "\n" << ((value & 0x0ffffff0) >> 4) <<endl ;
           //cout << std::bitset<32>(value) << "\n" << std::bitset<32>((value & 0x0ffffff0)) <<endl ;
           //cout << std::bitset<32>((value & 0x0ffffff0) >> 2) << "\n" << std::bitset<32>((value & 0x0ffffff0) >> 4) <<endl ;
           //cin.get();
-          eventfragment->cfd = eventfragment->cfd*10+eventfragment->slowrisetime*0.625;
+          fragment->cfd = fragment->cfd*10+fragment->slowrisetime*0.625;
           break;
 
       case 0x5: // Charge
-          eventfragment->found_charge = true;
-          if(eventfragment->IsBad){ // ignore if channel is bad
-            eventfragment->charge = -1;
-            eventfragment->overflow  = -1;
-            eventfragment->pileup   = -1;
+          fragment->found_charge = true;
+          if(fragment->IsBad){ // ignore if channel is bad
+            fragment->charge = -1;
+            fragment->overflow  = -1;
+            fragment->pileup   = -1;
             break;
           }
 
-          if(eventfragment->tig10)	{
+          if(fragment->tig10)	{
             double rand = m_Random->Uniform();
-            eventfragment->overflow  = (value & 0x08000000)>>26;
-            eventfragment->pileup   = (value & 0x02000000)>>25;
+            fragment->overflow  = (value & 0x08000000)>>26;
+            fragment->pileup   = (value & 0x02000000)>>25;
             if((value & 0x02000000) != 0u) { // true if there's pile-up
-              eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
-              eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
+              fragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
+              fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             } else {
-               eventfragment->charge = (value & 0x03ffffff);
-               eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
+               fragment->charge = (value & 0x03ffffff);
+               fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             }
           }
-          else if(eventfragment->tig64) {
+          else if(fragment->tig64) {
             double rand = m_Random->Uniform();  
-            eventfragment->overflow = (value & 0x00800000)>>22;
-            eventfragment->pileup   = (value & 0x00200000)>>21;  
+            fragment->overflow = (value & 0x00800000)>>22;
+            fragment->pileup   = (value & 0x00200000)>>21;  
             if((value & 0x00200000) != 0u) { // true if there's pile-up
-               eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x001fffff)) & 0x001fffff) + 1);
-               eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
+               fragment->charge = (-((~(static_cast<int32_t>(value) & 0x001fffff)) & 0x001fffff) + 1);
+               fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             } else {
-               eventfragment->charge = ((value & 0x003fffff));
-               eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
+               fragment->charge = ((value & 0x003fffff));
+               fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             }
           }
           else{ 
-            cout << "ERROR: " << (error++) << ". INFO: Charge extracting problem, [CHANNEL " << hex << eventfragment->channel_raw ;            
+            cout << "ERROR: " << (error++) << ". INFO: Charge extracting problem, [CHANNEL " << hex << fragment->channel_raw ;            
             cout << "] Unknown card type => Defaulting to tig-10 "<< endl ;
-            eventfragment->found_charge = false;
+            fragment->found_charge = false;
             double rand = m_Random->Uniform();
-            eventfragment->overflow = (value & 0x08000000)>>26;
-            eventfragment->pileup   = (value & 0x02000000)>>25;
+            fragment->overflow = (value & 0x08000000)>>26;
+            fragment->pileup   = (value & 0x02000000)>>25;
             if((value & 0x02000000) != 0u) { // true if there's pile-up
-               eventfragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
-               eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
+               fragment->charge = (-((~(static_cast<int32_t>(value) & 0x01ffffff)) & 0x01ffffff) + 1);
+               fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             } else {
-               eventfragment->charge = (value & 0x03ffffff);
-               eventfragment->charge = (rand + static_cast<double> (eventfragment->charge))/static_cast<double>(eventfragment->integration);
+               fragment->charge = (value & 0x03ffffff);
+               fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             }
           }
           break;
 
       case 0x6: // leading edge
-          eventfragment->led = (value & 0x0ffffff0)>>4;
+          fragment->led = (value & 0x0ffffff0)>>4;
           break;
 
       case 0x8: // Event header
-          eventfragment->found_eventID=true;
+          fragment->found_eventID=true;
           current_eventId = (value & 0x00ffffff); // format: 0x80NNNNNN 
           m_TotalFragment++;
           break;
@@ -411,17 +411,17 @@ void MidasBank::UnpackTigress(int *data, int size)	{
             time[1] =	*(data + x);	//& 0x0fffffff;
             if( (time[1] & 0xf0000000) != 0xa0000000) {
               if( ( (time[1] & 0xf0000000) == 0xc0000000) &&  ( ((time[1] & 0x000000ff) == 0x0000003f) || ((time[1] & 0x000000ff) == 0x0000001f) ) ) { x-=1; break;}
-              eventfragment->IsBad = true;
+              fragment->IsBad = true;
               //printf("timestamp probelm 1.\t%08x\t%08x\t%08x\t%i\n",time[0],time[1], 0xa0000000,x ); //PrintBank(data,size);
               break;
             }
             if( ((time[0] & 0x0f000000)==0) && ((time[1] & 0x0f000000)==0) ) { //tig64
-              eventfragment->timestamp_low = time[0] & 0x00ffffff;
-              eventfragment->timestamp_high = time[1] & 0x00ffffff;
+              fragment->timestamp_low = time[0] & 0x00ffffff;
+              fragment->timestamp_high = time[1] & 0x00ffffff;
             }
             else { //tig10
-              eventfragment->timestamp_low = time[0] & 0x00ffffff;
-              eventfragment->timestamp_high = time[1] & 0x00ffffff;
+              fragment->timestamp_low = time[0] & 0x00ffffff;
+              fragment->timestamp_high = time[1] & 0x00ffffff;
               x += 1;
               time[2] =	*(data+x);//	& 0x0fffffff;
               if( (time[2] & 0xf0000000) != 0xa0000000) {
@@ -443,19 +443,19 @@ void MidasBank::UnpackTigress(int *data, int size)	{
                 int subtype = (time[nstamp] & 0x0f000000);
                 switch(subtype)	{
                   case 0x00000000:
-                    eventfragment->timestamp_low = (time[nstamp] & 0x00ffffff);
+                    fragment->timestamp_low = (time[nstamp] & 0x00ffffff);
                     break;
                   case 0x01000000:
-                    eventfragment->timestamp_high = (time[nstamp] & 0x00ffffff);
+                    fragment->timestamp_high = (time[nstamp] & 0x00ffffff);
                     break;
                   case 0x02000000:
-                    eventfragment->timestamp_live = (time[nstamp] & 0x00ffffff);
+                    fragment->timestamp_live = (time[nstamp] & 0x00ffffff);
                     break;
                   case 0x04000000:
-                    eventfragment->timestamp_tr = (time[nstamp] & 0x00ffffff);
+                    fragment->timestamp_tr = (time[nstamp] & 0x00ffffff);
                     break;
                   case 0x08000000:
-                    eventfragment->timestamp_ta = (time[nstamp] & 0x00ffffff);
+                    fragment->timestamp_ta = (time[nstamp] & 0x00ffffff);
                     break;
                   default:
                     //printf("timestamp probelm default.\t%08x\t%08x\t%i\n",time[1], 0xa0000000,x );
@@ -470,66 +470,66 @@ void MidasBank::UnpackTigress(int *data, int size)	{
 
       case 0xa:
         if((value & 0x0f000000)==0x00000000)
-          eventfragment->timestamp_low = (value & 0x00ffffff);
+          fragment->timestamp_low = (value & 0x00ffffff);
         else if((value & 0x0f000000)==0x01000000)
-          eventfragment->timestamp_high = (value & 0x00ffffff);
+          fragment->timestamp_high = (value & 0x00ffffff);
         else if((value & 0x0f000000)==0x02000000)
-          eventfragment->timestamp_live = (value & 0x00ffffff);
+          fragment->timestamp_live = (value & 0x00ffffff);
         else if((value & 0x0f000000)==0x04000000)
-          eventfragment->timestamp_tr = (value & 0x00ffffff);
+          fragment->timestamp_tr = (value & 0x00ffffff);
         else if((value & 0x0f000000)==0x08000000)
-          eventfragment->timestamp_ta = (value & 0x00ffffff);
+          fragment->timestamp_ta = (value & 0x00ffffff);
         else{
           cout << "Time stamp datum incorrectly formatted : " << hex << dword << endl;
         }
 
       case 0xb: // Trigger Pattern
-          eventfragment->triggerpattern = value;
+          fragment->triggerpattern = value;
           break;
 
       case 0xc: // port info, fspc,  New Channel
-          eventfragment->found_channel = true;
-          eventfragment->channel_raw =  dword & 0x00ffffff ; // 0x00[S00PCC]
-          eventfragment->channel =  m_MidasChannel->GetChannelNumber(dword & 0x00ffffff);
+          fragment->found_channel = true;
+          fragment->channel_raw =  dword & 0x00ffffff ; // 0x00[S00PCC]
+          fragment->channel =  m_MidasChannel->GetChannelNumber(dword & 0x00ffffff);
           slave   = (dword & 0x00f00000)>>20;
           port    = (dword & 0x00000f00)>>8;
           channel = (dword & 0x000000ff);
 
           // tag bad channel and break
-          if(m_BadChannel[eventfragment->channel_raw]){ 
-            eventfragment->IsBad=true;
-            eventfragment->tig10 = false;
-            eventfragment->tig64 = false;
-            eventfragment->integration = -1;
+          if(m_BadChannel[fragment->channel_raw]){ 
+            fragment->IsBad=true;
+            fragment->tig10 = false;
+            fragment->tig64 = false;
+            fragment->integration = -1;
             m_UserBadFragment++;
             break; 
             }
           else
-            eventfragment->IsBad=false;
+            fragment->IsBad=false;
 
           if(m_MidasChannel->GetDigitizerType(dword & 0x00ffffff)==64){
-            eventfragment->tig10 = false;
-            eventfragment->tig64 = true;
-            eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
+            fragment->tig10 = false;
+            fragment->tig64 = true;
+            fragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
           }
           else if (m_MidasChannel->GetDigitizerType(dword & 0x00ffffff)==10){
-            eventfragment->tig10 = true;
-            eventfragment->tig64 = false;
-            eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
+            fragment->tig10 = true;
+            fragment->tig64 = false;
+            fragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
           }
           else{
-            eventfragment->tig10 = false;
-            eventfragment->tig64 = false;
-            eventfragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
+            fragment->tig10 = false;
+            fragment->tig64 = false;
+            fragment->integration = m_MidasChannel->GetIntegration(dword & 0x00ffffff);
           }
 
           break;
 
       case 0xe: // Event Trailer
          if(current_eventId!=(value&0x00ffffff)){
-            eventfragment->found_trailer = false; 
+            fragment->found_trailer = false; 
          }
-         eventfragment->found_trailer = true; 
+         fragment->found_trailer = true; 
           break;
 
       case 0xf: // EventBuilder Timeout
@@ -542,38 +542,38 @@ void MidasBank::UnpackTigress(int *data, int size)	{
     };
 
     // if the fragment has no missing information, push back on the event and make a new fragment
-    if(eventfragment->found_time && eventfragment->found_charge 
-    && eventfragment->found_channel && eventfragment->found_trailer 
+    if(fragment->found_time && fragment->found_charge 
+    && fragment->found_channel && fragment->found_trailer 
     && current_eventId>-1 ){
       m_CompleteFragment++;
       m_FragBankSize++; // this counter is dynamic!
-      eventfragment->eventId = current_eventId;
-      m_FragmentBank[current_eventId].push_back(eventfragment);
+      fragment->eventId = current_eventId;
+      m_FragmentBank[current_eventId].push_back(fragment);
 
       if(x!=size-1){
         cout << " WARNING: Found a complete fragment before reaching the size!!! \n " << endl; 
         cin.get();
-        eventfragment = new EventFragment; // start a new fragment
+        fragment = new EventFragment; // start a new fragment
       }
       else
-        eventfragment = 0; // Flag the end of a complete fragment
+        fragment = 0; // Flag the end of a complete fragment
     }  
   }// end of for loop iterating on ONE fragment of the given size
 
   // if there's a fragment, but missing an information: inform and delete
-  if(eventfragment &&
-   !(eventfragment->found_time && eventfragment->found_charge && 
-    eventfragment->found_channel && eventfragment->found_trailer &&
-    eventfragment->found_eventID) ){
+  if(fragment &&
+   !(fragment->found_time && fragment->found_charge && 
+    fragment->found_channel && fragment->found_trailer &&
+    fragment->found_eventID) ){
 
     m_IncompleteFragment++;
-    cout << "\nERROR: Incomplete fragment remnant, Fragment event ID: " <<  eventfragment->eventId << endl;
-    /*cout << "\t?found time    " << eventfragment->found_time   << endl;
-    cout << "\t?found charge  " << eventfragment->found_charge << endl;
-    cout << "\t?found channel " << eventfragment->found_channel << endl;
-    cout << "\t?found eventID " << eventfragment->found_eventID << endl;
-    cout << "\t?found trailer " << eventfragment->found_trailer << endl;*/
-    delete eventfragment;
+    cout << "\nERROR: Incomplete fragment remnant, Fragment event ID: " <<  fragment->eventId << endl;
+    /*cout << "\t?found time    " << fragment->found_time   << endl;
+    cout << "\t?found charge  " << fragment->found_charge << endl;
+    cout << "\t?found channel " << fragment->found_channel << endl;
+    cout << "\t?found eventID " << fragment->found_eventID << endl;
+    cout << "\t?found trailer " << fragment->found_trailer << endl;*/
+    delete fragment;
   }
 
 }
