@@ -115,8 +115,8 @@ void MidasBank::Process(unsigned int NumberOfFragment){
   int TreatedFragment = 0 ; // found and not bad
   int UnknownDigitizer = 0 ; // if digitizer is NOT recognised (subset of treated)
   int EventNumber = 0; // Good events (containing at least a good fragment)
-  double average_fragment = 0;
-  int currentID = 0;
+  double AverageFragNumber = 0;
+  int currentID = -1;
 
   cout << "Starting Bank Processing " << endl;
   // Loop over the rest of the element
@@ -134,7 +134,7 @@ void MidasBank::Process(unsigned int NumberOfFragment){
       for(unsigned int g = 0 ; g < numFrag ; g++){ // loops on all fragments in one event
         //process fragment only if it's good
         if (!m_EventFragmentVector[g]->IsBad){
-          TreatedFragment++; // general for the whole file
+          TreatedFragment++; // general counter for the whole file
           numGoodFrag++; // local, for every event
           m_CurrentMidasEvent->tig_midas_id.push_back( m_EventFragmentVector[g]->midasId);
           
@@ -151,10 +151,12 @@ void MidasBank::Process(unsigned int NumberOfFragment){
 
           m_CurrentMidasEvent->channel_number.push_back(m_EventFragmentVector[g]->channel);
           m_CurrentMidasEvent->channel_raw.push_back(m_EventFragmentVector[g]->channel_raw);
-          m_CurrentMidasEvent->cfd_value.push_back(m_EventFragmentVector[g]->cfd);
-          m_CurrentMidasEvent->led_value.push_back(m_EventFragmentVector[g]->led);
+
           m_CurrentMidasEvent->charge_raw.push_back(m_EventFragmentVector[g]->charge);
           m_CurrentMidasEvent->charge_cal.push_back(m_EventFragmentVector[g]->charge);
+
+          m_CurrentMidasEvent->cfd_value.push_back(m_EventFragmentVector[g]->cfd);
+          m_CurrentMidasEvent->led_value.push_back(m_EventFragmentVector[g]->led);
 
           m_CurrentMidasEvent->timestamp_low.push_back(m_EventFragmentVector[g]->timestamp_low);
           m_CurrentMidasEvent->timestamp_high.push_back(m_EventFragmentVector[g]->timestamp_high);
@@ -182,7 +184,7 @@ void MidasBank::Process(unsigned int NumberOfFragment){
           }
 
           if(EventNumber)
-            average_fragment+=(1./(EventNumber))*(m_EventFragmentVector.size()-average_fragment);
+            AverageFragNumber+=(1./(EventNumber))*(m_EventFragmentVector.size()-AverageFragNumber);
         } // end of: if(not a bad fragment)
 
         delete m_EventFragmentVector[g];
@@ -205,24 +207,25 @@ void MidasBank::Process(unsigned int NumberOfFragment){
       it = m_FragmentBank.erase(it); // the returned iterator points to the next element
       m_FragBankSize-=numFrag;
       // add some more to replace the removed one
-      for(int i = 0 ; i < numFrag ; i++){
+      for(int i = 0 ; i < numFrag ; i++)
         PushBackFragment();
+      
+      if(EventNumber%10000==0){
+        cout << "\r Treated Fragments: " << TreatedFragment/1000000. << " M |"
+          <<" Built events: " << EventNumber/1000.<<" k |"
+          <<" Avg. size: " << AverageFragNumber <<" |"
+          <<" Bank size: " << m_FragBankSize/1000.<<" k |"
+          <<" Unknown digitizer: " << UnknownDigitizer  << flush;
+        //printf("\r Treated Fragments: %.2fM | Built events: %.2fk | Avg. size: %.2f | Bank size: %.2fk | Unknown digitizer: %d",
+        //TreatedFragment/1e6,EventNumber/1e3,AverageFragNumber,m_FragBankSize/1e3, UnknownDigitizer);
       }
 
-      if(EventNumber%10000==0){
-        cout << "\r Treated Fragments: " << TreatedFragment/1000000. << " |"
-          <<" Built events:  " << EventNumber<<" |"
-          <<" Avg. size: " << average_fragment <<" |"
-          <<" Bank size: " << m_FragBankSize<<" |"
-          <<" Unknown digitizer : " << UnknownDigitizer  << flush;
-      }
-    }
-  }
+    }// end of for loop on Fragment Bank
+  }// end of while loop on fragment bank size
 
   cout << endl << "Processing terminated: "
        << EventNumber << " Events reconstructed" << endl ;
 
-    
    cout<< std::setw(10)<< m_TotalFragment      << " Fragments found, out of which: \n"  
        << std::setw(10)<< m_CompleteFragment   << " complete         (\% total): " << 100.0* m_CompleteFragment/m_TotalFragment << endl   
        << std::setw(10)<< m_IncompleteFragment << " incomplete       (\% total): " << 100.0* m_IncompleteFragment/m_TotalFragment << endl  
@@ -291,8 +294,7 @@ void MidasBank::UnPackMidasBank(MidasEventFragment* fragment) {
 /////////////////////////
 void MidasBank::UnpackTigress(int *data, int size)	{
   int error =0;
-  int current_eventId = -1;
-
+  int current_eventId = -1; 
   //cout << " ----------------- " << size << endl ; 
   // the fragment contains data words of size 
   EventFragment* fragment = new EventFragment; 
@@ -336,11 +338,6 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           fragment->found_time = true;
           fragment->slowrisetime = (value & 0x0000000f);
           fragment->cfd          = (value & 0x0ffffff0) >> 4;
-          //cout << hex << ((value & 0x0ffffff0) >> 2) << "\n" << ((value & 0x0ffffff0) >> 4) << endl; 
-          //cout << dec << ((value & 0x0ffffff0) >> 2) << "\n" << ((value & 0x0ffffff0) >> 4) <<endl ;
-          //cout << std::bitset<32>(value) << "\n" << std::bitset<32>((value & 0x0ffffff0)) <<endl ;
-          //cout << std::bitset<32>((value & 0x0ffffff0) >> 2) << "\n" << std::bitset<32>((value & 0x0ffffff0) >> 4) <<endl ;
-          //cin.get();
           fragment->cfd = fragment->cfd*10+fragment->slowrisetime*0.625;
           break;
 
@@ -494,6 +491,8 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           slave   = (dword & 0x00f00000)>>20;
           port    = (dword & 0x00000f00)>>8;
           channel = (dword & 0x000000ff);
+          //cout << hex <<  fragment->channel_raw << endl; 
+          //cout << std::bitset<32>(channel_raw) << "\n" << std::bitset<32>((channel_raw & 0x0ffffff0)) <<endl ;
 
           // tag bad channel and break
           if(m_BadChannel[fragment->channel_raw]){ 
@@ -552,7 +551,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
 
       if(x!=size-1){
         cout << " WARNING: Found a complete fragment before reaching the size!!! \n " << endl; 
-        cin.get();
+        //cin.get();
         fragment = new EventFragment; // start a new fragment
       }
       else
