@@ -29,8 +29,8 @@ TMidasEvent::~TMidasEvent(){
 }
 
 void TMidasEvent::Clear(){
-    tig_num_chan=0;
-	  tig_event_id=0;
+    tig_num_chan=-1;
+	  tig_event_id=-1;
 	  tig_midas_id.clear();
 	  tig_type.clear();
 	  channel_number.clear();
