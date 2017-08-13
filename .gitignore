@@ -30,3 +30,4 @@ Documentation/user_guide.log
 *.sublime-*
 include/*
 unpacker
+nohup*
