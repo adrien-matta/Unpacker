@@ -42,6 +42,9 @@ include(${NPLib_USE_FILE})
 set(UP_SUB_DIRECTORIES UpCore)
 
 ### for Darwin
+set(CMAKE_MACOSX_RPATH 1)
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_INSTALL_RPATH ${UNPACKER_LIB_DIR})
 # Set the Search path for library
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # set Unpacker/lib as one of the link directory
