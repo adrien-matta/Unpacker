@@ -495,7 +495,10 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           //cout << std::bitset<32>(channel_raw) << "\n" << std::bitset<32>((channel_raw & 0x0ffffff0)) <<endl ;
 
           // tag bad channel and break
-          if(m_BadChannel[fragment->channel_raw]){ 
+          if(m_MidasChannel->GetChannelNumber(fragment->channel_raw)<0){
+          //if(m_BadChannel[fragment->channel_raw]){ 
+          //cout <<dec<< m_MidasChannel->GetChannelNumber(fragment->channel_raw) 
+          //  << " => " << hex<< fragment->channel_raw << endl;
             fragment->IsBad=true;
             fragment->tig10 = false;
             fragment->tig64 = false;
