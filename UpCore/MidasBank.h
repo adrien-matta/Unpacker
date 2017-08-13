@@ -123,9 +123,6 @@ private: // Process the data from the file
   void UnPackMidasBank(MidasEventFragment* fragment);
   void UnpackTigress(int *data, int size);
   void ReadAnalysisConfig();
-
-private:
-	void fill_fspc_list();
   
 private: // Root output
   TFile* m_RootFile;

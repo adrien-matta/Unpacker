@@ -36,8 +36,8 @@ MidasBank::MidasBank(){
   m_IncompleteFragment=0;
   m_UserBadFragment=0;
   m_MidasChannel = MidasChannelMap::getInstance();
-  fill_fspc_list();
   ReadAnalysisConfig();
+  //ReadAnalysisConfig();
   m_CurrentMidasEvent = new TMidasEvent(3000);
   m_RootFile = NULL;
   m_RootTree = NULL;
@@ -539,7 +539,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           break;
 
       default:
-          cout << "ERROR: found unknown type: " << hex << type << " word: " << hex << dword  << endl;;
+          cout << "ERROR: found unknown type: " << hex << type << " word: " << hex << dword << dec << endl;
           break;
     };
 
@@ -582,7 +582,7 @@ void MidasBank::UnpackTigress(int *data, int size)	{
 
 
 //////////////
-void MidasBank::fill_fspc_list()	{
+void MidasBank::ReadAnalysisConfig()	{
  
   string FSPCPath="Config.txt";
   ifstream FSPCFile;
@@ -678,52 +678,3 @@ void MidasBank::InitTree(){
 }
 
 
-//////////////
-///////////////////////////////////////////////////////////////////////////
-void MidasBank::ReadAnalysisConfig(){
-  bool ReadingStatus = false;
-
-  // path to file
-  string FileName = "BadChannels.txt";
-
-  // open analysis config file
-  ifstream AnalysisConfigFile;
-  AnalysisConfigFile.open(FileName.c_str());
-
-  if (!AnalysisConfigFile.is_open()) {
-    cout << "INFO: The file " << FileName << " is not found, all addresses are considered operational "<< endl;
-    return;
-  }
-  cout << " INFO: Loading user restrictions on Bad FSPC addresses from " << FileName << endl;
-
-  // read analysis config file
-  string LineBuffer,DataBuffer,whatToDo;
-  while (!AnalysisConfigFile.eof()) {
-    // Pick-up next line
-    getline(AnalysisConfigFile, LineBuffer);
-
-    // search for "header"
-    if (LineBuffer.compare(0, 12, "ConfigFSPC") == 0) ReadingStatus = true;
-
-    // loop on tokens and data
-    while (ReadingStatus ) {
-
-      whatToDo="";
-      AnalysisConfigFile >> whatToDo;
-
-      // Search for comment symbol (%)
-      if (whatToDo.compare(0, 1, "%") == 0) {
-        AnalysisConfigFile.ignore(numeric_limits<streamsize>::max(), '\n' );
-      }
-      else if (whatToDo== "DISABLE_CHANNEL") { //disable this channel number 
-        AnalysisConfigFile >> DataBuffer;
-        cout << whatToDo << "  " << DataBuffer << endl; // e.g. DataBuffer = CLOVER03
-        int channel = (int)strtol(DataBuffer.c_str(),NULL,16);
-        m_BadChannel[channel] = true;
-      }
-      else {
-        ReadingStatus = false;
-      }
-    }
-  }
-}
