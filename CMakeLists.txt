@@ -1,6 +1,11 @@
 cmake_minimum_required (VERSION 2.6)
 project (Unpacker++)
  include("FindROOT.cmake") 
+ 
+# Set usefull variables
+set(UNPACKER "$ENV{UNPACKER}")
+set(UNPACKER_LIB_DIR "${UNPACKER}/lib")
+
 # The version number.
 set (UP_VEUPION_MAJOR 1)
 set (UP_VEUPION_MINOR 0)
@@ -13,7 +18,6 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES ".*Clang.*")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
 
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
@@ -36,6 +40,12 @@ include(${NPLib_USE_FILE})
 
 # add lib
 set(UP_SUB_DIRECTORIES UpCore)
+
+### for Darwin
+# Set the Search path for library
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# set Unpacker/lib as one of the link directory
+link_directories(${UNPACKER_LIB_DIR})
 
 # Macro that add the sub dir and the include file install path
 foreach(subdir ${UP_SUB_DIRECTORIES})
