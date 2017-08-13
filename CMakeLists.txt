@@ -5,6 +5,10 @@ project (Unpacker++)
 # Set usefull variables
 set(UNPACKER "$ENV{UNPACKER}")
 set(UNPACKER_LIB_DIR "${UNPACKER}/lib")
+set(NPTOOL "$ENV{NPTOOL}")
+set(NPLIB "${NPTOOL}/NPLib")
+set(NPTOOL_INCLUDE_DIR "${NPLIB}/include")
+set(NPTOOL_LIB_DIR "${NPLIB}/lib")
 
 # The version number.
 set (UP_VEUPION_MAJOR 1)
@@ -49,6 +53,8 @@ SET(CMAKE_INSTALL_RPATH ${UNPACKER_LIB_DIR})
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # set Unpacker/lib as one of the link directory
 link_directories(${UNPACKER_LIB_DIR})
+# set NPLib/lib as one of the link directory
+link_directories(${NPTOOL_LIB_DIR})
 
 # Macro that add the sub dir and the include file install path
 foreach(subdir ${UP_SUB_DIRECTORIES})
