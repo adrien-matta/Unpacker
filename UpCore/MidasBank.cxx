@@ -535,11 +535,11 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           break;
 
       case 0xf: // EventBuilder Timeout
-          cout << "ERROR: found type: " << hex <<  type << " word: " << hex << dword << dec << endl;
+          //cout << "ERROR: found type: " << hex <<  type << " word: " << hex << dword << dec << endl;
           break;
 
       default:
-          cout << "ERROR: found unknown type: " << hex << type << " word: " << hex << dword << dec << endl;
+          //cout << "ERROR: found unknown type: " << hex << type << " word: " << hex << dword << dec << endl;
           break;
     };
 
