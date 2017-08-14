@@ -26,6 +26,7 @@ UnpackerOptionManager::UnpackerOptionManager(){
   m_NoUserPoint = false;
   m_RunNumber=0;
   m_RunNumberMinor=0;
+  m_VerboseLevel=1; // Defautl will show Errors only
 }
 
 ////////////////////////////////////
@@ -47,21 +48,24 @@ void UnpackerOptionManager::ReadUserOption(int argc, char*argv[]){
     
     if (argument == "-H" || argument == "-h" || argument == "--help") DisplayHelp();
     
-    else if (argument == "--user-output-tree-name" && argc >= i + 1) m_UserOutputName = argv[++i] ;
+    else if ((argument == "-ut" || argument == "--user-output-tree-name") && argc >= i + 1) m_UserOutputName = argv[++i] ;
     
-    else if (argument == "--bank-output-tree-name" && argc >= i + 1) m_BankOutputName = argv[++i] ;
+    else if ((argument == "-bt" || argument == "--bank-output-tree-name") && argc >= i + 1) m_BankOutputName = argv[++i] ;
     
-    else if (argument == "--user-output-path" && argc >= i + 1) m_UserOutputPath = argv[++i] ;
+    else if ((argument == "-up" || argument == "--user-output-path") && argc >= i + 1) m_UserOutputPath = argv[++i] ;
     
-    else if (argument == "--bank-output-path" && argc >= i + 1) m_BankOutputPath = argv[++i] ;
+    else if ((argument == "-bp" || argument == "--bank-output-path") && argc >= i + 1) m_BankOutputPath = argv[++i] ;
     
-    else if (argument == "--intial-load" && argc >= i + 1)      m_InitialBankLoad = atoi(argv[++i]) ;
+    else if ((argument == "-il" || argument == "--intial-load") && argc >= i + 1)      m_InitialBankLoad = atoi(argv[++i]) ;
     
-    else if (argument == "--maximum-load" && argc >= i + 1)      m_MaximumBankLoad = atoi(argv[++i]) ;
+    else if ((argument == "-ml" || argument == "--maximum-load") && argc >= i + 1)     m_MaximumBankLoad = atoi(argv[++i]) ;
 
-    else if (argument == "--no-bank-tree")                      m_NoBankTree = true ;
+    else if ((argument == "-v" || argument == "--verbose") && argc >= i + 1)          m_VerboseLevel = atoi(argv[++i]) ;
+
+    else if (argument == "-nb" || argument == "--no-bank-tree")                      m_NoBankTree = true ;
     
-    else if (argument == "--no-user-point")                     m_NoUserPoint = true ;
+    else if (argument == "-nu" || argument == "--no-user-point")                     m_NoUserPoint = true ;
+
 
     
     // assume it is the input file name
@@ -73,13 +77,14 @@ void UnpackerOptionManager::ReadUserOption(int argc, char*argv[]){
       }
       
       string RunNumber(m_InputFileName,(m_InputFileName.find(".mid")-9),m_InputFileName.find(".mid")-(m_InputFileName.find(".mid")-5));
-      
       string RunNumberMinor(m_InputFileName,(m_InputFileName.find(".mid")-3),m_InputFileName.find(".mid")-(m_InputFileName.find(".mid")-3));
 
       m_RunNumber = atoi(RunNumber.c_str());
       m_RunNumberMinor = atoi(RunNumberMinor.c_str());
       cout << "Run Number Major " << m_RunNumber << endl;
       cout << "Run Number Minor " << m_RunNumberMinor << endl;
+      cout << "Verbose level " << m_VerboseLevel << endl;
+
     }
     
     else{
@@ -99,13 +104,15 @@ void UnpackerOptionManager::DisplayHelp(){
   
   cout << "/////////////////////////////// Option List ///////////////////////////////" << endl;
   cout << "-h -H --help \t \t \t Display this help" << endl ;
-  cout << "--user-output-tree-name <arg> \t Set <arg> as the UserPoint issued TTree name " << endl;
-  cout << "--bank-output-tree-name <arg> \t Set <arg> as the Bank issued TTree name " << endl;
-  cout << "--user-output-path <arg> \t Create the UserPoint issued TTree in path <arg> " << endl;
-  cout << "--bank-output-path <arg> \t Create the Bank issued TTree in path <arg> " << endl;
-  cout << "--intial-load <arg> \t \t Load the bank initially with <arg> fragment  " << endl;
-  cout << "--no-bank-tree \t \t \t The Bank issued TTree is not generated (Run faster)" << endl;
-  cout << "--no-user-point \t \t The UserPoint is not run at all" << endl;
+  cout << "-ut or --user-output-tree-name <arg> \t Set <arg> as the UserPoint issued TTree name " << endl;
+  cout << "-bt or --bank-output-tree-name <arg> \t Set <arg> as the Bank issued TTree name " << endl;
+  cout << "-up or --user-output-path <arg> \t Create the UserPoint issued TTree in path <arg> " << endl;
+  cout << "-bp or --bank-output-path <arg> \t Create the Bank issued TTree in path <arg> " << endl;
+  cout << "-il or --intial-load <arg> \t \t Load the bank initially with <arg> fragment  " << endl;
+  cout << "-v or --verbose <arg> \t \t sets the verbose level to <arg>; silent 0, errors 1, +warnings 2 etc..  " << endl;
+
+  cout << "-nb or --no-bank-tree \t \t \t The Bank issued TTree is not generated (Run faster)" << endl;
+  cout << "-nu or --no-user-point \t \t The UserPoint is not run at all" << endl;
   cout << "///////////////////////////////////////////////////////////////////////////" << endl;
 
   exit(1);

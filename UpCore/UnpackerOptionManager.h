@@ -32,6 +32,7 @@ private: // Output trees related
   string m_BankOutputName; // Name of the Midas Bank issued tree
   int    m_RunNumber; // extract the run number from the mid file name, so it can be use by the user
   int    m_RunNumberMinor; // extract the run number from the mid file name, so it can be use by the user
+  int    m_VerboseLevel; // verbose level, 0: Silent, 1: Errors, 2: Errors+Warnings etc... 
 
 private: // Bank related
   unsigned int m_InitialBankLoad; // Number of fragment to load initially in the bank
@@ -49,6 +50,7 @@ public:
   inline string GetBankOutputName(){ return m_BankOutputName;}
   inline int GetRunNumber(){return m_RunNumber;}
   inline int GetRunNumberMinor(){return m_RunNumberMinor;}
+  inline int GetVerboseLevel(){return m_VerboseLevel;}
 
   inline unsigned int GetInitialBankLoad(){ return m_InitialBankLoad;}
   inline unsigned int GetMaximumBankLoad(){ return m_MaximumBankLoad;}
@@ -65,6 +67,8 @@ public:
   inline void SetRunNumber(int RunNumber) {m_RunNumber = RunNumber;};
   inline void SetNoBankTree(bool NoBankTree) { m_NoBankTree = NoBankTree;}
   inline void SetNoUserPoint(bool  NoUserPoint){ m_NoUserPoint = NoUserPoint;}
+  inline void SetVerboseLevel(int verbose){ m_VerboseLevel = verbose;}
+
 };
 
 #endif

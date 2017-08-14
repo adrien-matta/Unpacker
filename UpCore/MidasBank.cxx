@@ -5,11 +5,13 @@
 #include <cstdlib>
 #include <iomanip>      // std::setw
 
-
 //Unpacker
 #include "MidasBank.h"
 #include "VUserPoint.h"
 #include "UnpackerOptionManager.h"
+
+//Verbose levels
+enum verbose {vSilent, vNotif, vError, vWarning, vDebug};
 
 MidasBank* MidasBank::instance = NULL;
 ////////////////////////////////
@@ -44,6 +46,7 @@ MidasBank::MidasBank(){
   m_Random = new TRandom3();
 
   string infile = UnpackerOptionManager::getInstance()->GetInputFileName();
+
   MidasFile* myMidasFile = new MidasFile();
   myMidasFile->Open(infile.c_str());
 
@@ -74,11 +77,13 @@ void MidasBank::Build(unsigned int NumberOfFragment){
   unsigned int i=0;
   for (i = 0 ; i< NumberOfFragment; i++) {
     if(i%1000==0){
+       if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
       cout << "\r Initial Loading : " << i/1000. << "k fragments" << flush;
     }
     PushBackFragment();
   }
-  cout << "\r Initial Loading : " << i/1000. << "k fragment" << endl;
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
+    cout << "\r Initial Loading : " << i/1000. << "k fragment" << endl;
 
 }
 
@@ -118,7 +123,8 @@ void MidasBank::Process(unsigned int NumberOfFragment){
   double AverageFragNumber = 0;
   int currentID = -1;
 
-  cout << "Starting Bank Processing " << endl;
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
+    cout << "Starting Bank Processing " << endl;
   // Loop over the rest of the element
   while(m_FragBankSize!=0){
     // loop over the fragment map
@@ -145,7 +151,8 @@ void MidasBank::Process(unsigned int NumberOfFragment){
             m_CurrentMidasEvent->tig_type.push_back(1);
           }
           else{
-            cout <<"ERROR: Digitizer Card type is UNKNOWN" << endl ;
+            if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vError)
+              cout <<"ERROR: Digitizer Card type is UNKNOWN" << endl ;
             UnknownDigitizer++;
           }
 
@@ -211,6 +218,7 @@ void MidasBank::Process(unsigned int NumberOfFragment){
         PushBackFragment();
       
       if(EventNumber%10000==0){
+        if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
         cout << "\r Treated Fragments: " << TreatedFragment/1000000. << " M |"
           <<" Built events: " << EventNumber/1000.<<" k |"
           <<" Avg. size: " << AverageFragNumber <<" |"
@@ -223,19 +231,21 @@ void MidasBank::Process(unsigned int NumberOfFragment){
     }// end of for loop on Fragment Bank
   }// end of while loop on fragment bank size
 
-  cout << endl << "Processing terminated: "
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vSilent ){
+    cout << endl << "Processing terminated: "
        << EventNumber << " Events reconstructed" << endl ;
 
-   cout<< std::setw(10)<< m_TotalFragment      << " Fragments found, out of which: \n"  
+    cout<< std::setw(10)<< m_TotalFragment      << " Fragments found, out of which: \n"  
        << std::setw(10)<< m_CompleteFragment   << " complete         (\% total): " << 100.0* m_CompleteFragment/m_TotalFragment << endl   
        << std::setw(10)<< m_IncompleteFragment << " incomplete       (\% total): " << 100.0* m_IncompleteFragment/m_TotalFragment << endl  
        << std::setw(10)<< m_UserBadFragment    << " bad channels     (\% total): " << 100.0* m_UserBadFragment/m_TotalFragment << endl  
        << std::setw(10)<< TreatedFragment      << " treated (good)   (\% total): " << 100.0* TreatedFragment/m_TotalFragment << endl;
 
-  cout << "Missing " << m_FragmentBank.size() << endl ;
-  cout << "Remaining BankSize " << m_FragBankSize << endl ;
-  cout << "Last treated event " << currentID << endl ;
-  user_point->EndOfRunAction();
+    cout << "Missing " << m_FragmentBank.size() << endl ;
+    cout << "Remaining BankSize " << m_FragBankSize << endl ;
+    cout << "Last treated event " << currentID << endl ;
+    user_point->EndOfRunAction();
+  }
 }
 
 ////////////////////////////////
@@ -294,8 +304,10 @@ void MidasBank::UnPackMidasBank(MidasEventFragment* fragment) {
 /////////////////////////
 void MidasBank::UnpackTigress(int *data, int size)	{
   int error =0;
-  int current_eventId = -1; 
-  //cout << " ----------------- " << size << endl ; 
+  int current_eventId = -1;
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vDebug)
+    cout << " Block size " << size << endl ; 
+
   // the fragment contains data words of size 
   EventFragment* fragment = new EventFragment; 
   for(int x=0; x<size ;x++)	{
@@ -304,7 +316,9 @@ void MidasBank::UnpackTigress(int *data, int size)	{
     unsigned int value =	(dword & 0x0fffffff);
     int port,slave,channel;
   
-    //std::cout << std::hex << type << " "  << value << std::endl;
+    if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vDebug)
+      cout << " Data type: "  << std::hex << type << "  value:"  << value << endl;
+
     switch(type)	{
 
       case 0x0: // waveform data
@@ -374,9 +388,14 @@ void MidasBank::UnpackTigress(int *data, int size)	{
                fragment->charge = (rand + static_cast<double> (fragment->charge))/static_cast<double>(fragment->integration);
             }
           }
-          else{ 
-            cout << "ERROR: " << (error++) << ". INFO: Charge extracting problem, [CHANNEL " << hex << fragment->channel_raw ;            
-            cout << "] Unknown card type => Defaulting to tig-10 "<< endl ;
+          else{
+            if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vError){
+              cout << "ERROR Nb.: " << (error++) << " Charge extracting problem";
+              if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vDebug){
+                cout << ", [CHANNEL " << hex << fragment->channel_raw ;            
+                cout << "] Unknown card type => Defaulting to tig-10 "<< endl ;
+              }
+            }
             fragment->found_charge = false;
             double rand = m_Random->Uniform();
             fragment->overflow = (value & 0x08000000)>>26;
@@ -477,7 +496,8 @@ void MidasBank::UnpackTigress(int *data, int size)	{
         else if((value & 0x0f000000)==0x08000000)
           fragment->timestamp_ta = (value & 0x00ffffff);
         else{
-          cout << "Time stamp datum incorrectly formatted : " << hex << dword << endl;
+          if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vError)
+            cout << "ERROR: Time stamp datum incorrectly formatted: " << hex << dword << endl;
         }
 
       case 0xb: // Trigger Pattern
@@ -491,14 +511,17 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           slave   = (dword & 0x00f00000)>>20;
           port    = (dword & 0x00000f00)>>8;
           channel = (dword & 0x000000ff);
-          //cout << hex <<  fragment->channel_raw << endl; 
-          //cout << std::bitset<32>(channel_raw) << "\n" << std::bitset<32>((channel_raw & 0x0ffffff0)) <<endl ;
+          if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vDebug){
+            cout << " Raw Channel: " << hex <<  fragment->channel_raw << endl; 
+            cout << std::bitset<32>(fragment->channel_raw) << "\n" << std::bitset<32>(fragment->channel_raw & 0x0ffffff0) <<endl ;
+          }
 
           // tag bad channel and break
           if(m_MidasChannel->GetChannelNumber(fragment->channel_raw)<0){
-          //if(m_BadChannel[fragment->channel_raw]){ 
-          //cout <<dec<< m_MidasChannel->GetChannelNumber(fragment->channel_raw) 
-          //  << " => " << hex<< fragment->channel_raw << endl;
+            if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vDebug){
+              cout << " Channel Number: " << dec << m_MidasChannel->GetChannelNumber(fragment->channel_raw) 
+                   << " => Raw Channel: " << hex << fragment->channel_raw << endl;
+            }
             fragment->IsBad=true;
             fragment->tig10 = false;
             fragment->tig64 = false;
@@ -535,11 +558,13 @@ void MidasBank::UnpackTigress(int *data, int size)	{
           break;
 
       case 0xf: // EventBuilder Timeout
-          //cout << "ERROR: found type: " << hex <<  type << " word: " << hex << dword << dec << endl;
+          if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vError)
+            cout << "ERROR: found unknown type " << hex <<  type << " word: " << hex << dword << dec << endl;
           break;
 
       default:
-          //cout << "ERROR: found unknown type: " << hex << type << " word: " << hex << dword << dec << endl;
+          if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vError)
+            cout << "ERROR: found unknown type: " << hex << type << " word: " << hex << dword << dec << endl;
           break;
     };
 
@@ -553,8 +578,8 @@ void MidasBank::UnpackTigress(int *data, int size)	{
       m_FragmentBank[current_eventId].push_back(fragment);
 
       if(x!=size-1){
-        cout << " WARNING: Found a complete fragment before reaching the size!!! \n " << endl; 
-        //cin.get();
+        if(UnpackerOptionManager::getInstance()->GetVerboseLevel()> vWarning)
+          cout << " WARNING: Found a complete fragment before reaching the size!!! \n " << endl; 
         fragment = new EventFragment; // start a new fragment
       }
       else
@@ -569,12 +594,15 @@ void MidasBank::UnpackTigress(int *data, int size)	{
     fragment->found_eventID) ){
 
     m_IncompleteFragment++;
-    cout << "\nERROR: Incomplete fragment remnant, Fragment event ID: " <<  fragment->eventId << endl;
-    /*cout << "\t?found time    " << fragment->found_time   << endl;
-    cout << "\t?found charge  " << fragment->found_charge << endl;
-    cout << "\t?found channel " << fragment->found_channel << endl;
-    cout << "\t?found eventID " << fragment->found_eventID << endl;
-    cout << "\t?found trailer " << fragment->found_trailer << endl;*/
+    if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vWarning )
+      cout << "\nWARNING: Incomplete fragment remnant, Fragment event ID: " <<  fragment->eventId << endl;
+    if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vDebug){
+      cout << "\t?found time    " << fragment->found_time   << endl;
+      cout << "\t?found charge  " << fragment->found_charge << endl;
+      cout << "\t?found channel " << fragment->found_channel << endl;
+      cout << "\t?found eventID " << fragment->found_eventID << endl;
+      cout << "\t?found trailer " << fragment->found_trailer << endl;
+    }
     delete fragment;
   }
 
@@ -588,8 +616,12 @@ void MidasBank::ReadAnalysisConfig()	{
   ifstream FSPCFile;
   FSPCFile.open(FSPCPath.c_str());
   
-  if(!FSPCFile.is_open()) {cout << "Error: FSPC File: " << FSPCPath << " not found " << endl ; exit(1);}
-  else {cout << "Midas Bank is Reading FSPC file : " << FSPCPath << endl ;}
+  if(!FSPCFile.is_open()) {
+    cout << "ERROR: FSPC File: " << FSPCPath << " not found " << endl ; exit(1);}
+  else 
+    if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
+      cout << "Midas Bank is Reading FSPC file : " << FSPCPath << endl ;
+
   
   string LineBuffer, DataBuffer;
   string ChannelNumberStr, FSPCAddressStr, CardTypeStr, Mnemonic;
@@ -612,7 +644,6 @@ void MidasBank::ReadAnalysisConfig()	{
     unsigned index=0;
     double coef; 
     while(myLine>>CalibCoeffStr){
-      //cout << index << " " << CalibCoeffStr << " ";
       stringstream(CalibCoeffStr) >> coef;
       CalibCoeff.push_back(coef);
       index++;       
@@ -640,7 +671,8 @@ void MidasBank::ReadAnalysisConfig()	{
     //m_MidasChannel->PrintChannel(FSPCAddress);
   }
 
-  cout << " Total number of operational channels " << m_MidasChannel->GetSize() << endl;
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
+    cout << " Total number of operational channels " << m_MidasChannel->GetSize() << endl;
 
 }
 
@@ -650,19 +682,28 @@ void MidasBank::SetRootFile(string infile){
   if(infile=="")
     return;
 
-  if(infile.find(".mid") == infile.npos)
-  { printf("can't read midas file\n"); return ; }
+  if(infile.find(".mid") == infile.npos){
+      printf("ERROR: can't read midas file\n"); 
+    return ; 
+  }
 
   string outfile(infile,(infile.find(".mid")-9),infile.find(".mid")-(infile.find(".mid")-9));
   outfile += ".root";
   string temp = UnpackerOptionManager::getInstance()->GetBankOutputPath()+"bank";
   outfile = temp+outfile;
-  printf("Bank tree: %s\n",outfile.c_str());
+
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
+    printf("Bank tree name: %s\n",outfile.c_str());
+
   //gDirectory->cd();
   m_RootFile = new TFile(outfile.c_str(),"RECREATE");
-  if(!m_RootFile->IsOpen()) { printf("issues opening the root output file....\n");exit(1); }
+  if(!m_RootFile->IsOpen()) { 
+    printf("ERROR: issues opening the root output file....\n");
+    exit(1);
+  }
  
-  cout << "Creating bank tree : " << UnpackerOptionManager::getInstance()->GetBankOutputName() << endl;
+  if(UnpackerOptionManager::getInstance()->GetVerboseLevel() >= vNotif)
+    cout << "Creating bank tree : " << UnpackerOptionManager::getInstance()->GetBankOutputName() << endl;
 
 }
 
@@ -673,7 +714,8 @@ void MidasBank::InitTree(){
     m_RootTree->Branch( "MidasEvent" , "TMidasEvent" , &m_CurrentMidasEvent );
   }
   else {
-    printf("The bank root file is not opened....\n");exit(1);
+    printf("ERROR: The bank root file is not opened....\n");
+    exit(1);
   }
 }
 

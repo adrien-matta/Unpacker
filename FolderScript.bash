@@ -13,10 +13,13 @@ if [ -f $DATANAME ]
   then echo $i already treated, ignored
 else
   #echo treating $i
-  #./unpacker $i --user-output-tree-name rawdata  --user-output-path $2 --intial-load 1000000 --maximum-load 1000000
-  ./unpacker  $i --user-output-tree-name rawdata  --user-output-path  $2   --bank-output-tree-name bankdata   --bank-output-path  $2 --intial-load 1000000 --maximum-load 1000000
-fi
+  #./unpacker --verbose 0  $i --user-output-tree-name rawdata    --user-output-path $2  
+  ./unpacker  --verbose 0  $i --user-output-tree-name rawdata    --user-output-path $2   --bank-output-tree-name bankdata   --bank-output-path  $2 
+  #./unpacker  -v 0    $i   -ut rawdata    -up $2    -bt bankdata    -bp $2    -il 1000000 -ml 1000000
 done
 
-# ./FolderScript.sh /Users/moukaddam/Work/TRIUMF/S1719/MidasData/   /Users/moukaddam/Work/TRIUMF/S1719/RawData/
-# ./FolderScript.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/
+# Examples run on terminal:
+# ./FolderScript.bash /Users/moukaddam/Work/TRIUMF/S1719/MidasData/   /Users/moukaddam/Work/TRIUMF/S1719/RawData/
+# ./FolderScript.bash /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/
+# nohup sh FolderScript.bash /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/   >/dev/null 2>&1 &
+# nohup sh FolderScript.bash /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/   &
