@@ -59,6 +59,7 @@ if [ $version_major -gt 5 ]
    rootcint -f $2 -rmf $3 -rml $lib_name -I../Core $1 $5
 fi
 
-
+#The PCM file needs to sit right next to the corresponding library
+cp *.rootmap *.pcm $UNPACKER/lib
 
 
