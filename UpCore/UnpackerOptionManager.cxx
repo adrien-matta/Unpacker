@@ -47,27 +47,35 @@ void UnpackerOptionManager::ReadUserOption(int argc, char*argv[]){
     string argument = argv[i];
     
     if (argument == "-H" || argument == "-h" || argument == "--help") DisplayHelp();
-    
-    else if ((argument == "-ut" || argument == "--user-output-tree-name") && argc >= i + 1) m_UserOutputName = argv[++i] ;
-    
-    else if ((argument == "-bt" || argument == "--bank-output-tree-name") && argc >= i + 1) m_BankOutputName = argv[++i] ;
-    
-    else if ((argument == "-up" || argument == "--user-output-path") && argc >= i + 1) m_UserOutputPath = argv[++i] ;
-    
-    else if ((argument == "-bp" || argument == "--bank-output-path") && argc >= i + 1) m_BankOutputPath = argv[++i] ;
-    
-    else if ((argument == "-il" || argument == "--intial-load") && argc >= i + 1)      m_InitialBankLoad = atoi(argv[++i]) ;
-    
-    else if ((argument == "-ml" || argument == "--maximum-load") && argc >= i + 1)     m_MaximumBankLoad = atoi(argv[++i]) ;
+    else if ((argument == "-ut" || argument == "--user-output-tree-name") && argc >= i + 1) {
+      m_UserOutputName = argv[++i] ;
+    }
+    else if ((argument == "-bt" || argument == "--bank-output-tree-name") && argc >= i + 1) {
+      m_BankOutputName = argv[++i] ;
+    }
+    else if ((argument == "-up" || argument == "--user-output-path") && argc >= i + 1) {
+      m_UserOutputPath = argv[++i] ;
+    }
+    else if ((argument == "-bp" || argument == "--bank-output-path") && argc >= i + 1) {
+      m_BankOutputPath = argv[++i] ;
+    }
+    else if ((argument == "-il" || argument == "--intial-load") && argc >= i + 1) {
+      m_InitialBankLoad = atoi(argv[++i]) ;
+    }
+    else if ((argument == "-ml" || argument == "--maximum-load") && argc >= i + 1) { 
+      m_MaximumBankLoad = atoi(argv[++i]) ;
+    }
+    else if ((argument == "-v" || argument == "--verbose") && argc >= i + 1)  {
+      m_VerboseLevel = atoi(argv[++i]); 
+      cout << "Verbose Level: "<< m_VerboseLevel<<endl;
+    } 
+    else if (argument == "-nb" || argument == "--no-bank-tree"){
+      m_NoBankTree = true ;
+    }
+    else if (argument == "-nu" || argument == "--no-user-point"){
+      m_NoUserPoint = true ;
+    }
 
-    else if ((argument == "-v" || argument == "--verbose") && argc >= i + 1)          m_VerboseLevel = atoi(argv[++i]) ;
-
-    else if (argument == "-nb" || argument == "--no-bank-tree")                      m_NoBankTree = true ;
-    
-    else if (argument == "-nu" || argument == "--no-user-point")                     m_NoUserPoint = true ;
-
-
-    
     // assume it is the input file name
     else if(!check){
       check = true ;
@@ -83,8 +91,6 @@ void UnpackerOptionManager::ReadUserOption(int argc, char*argv[]){
       m_RunNumberMinor = atoi(RunNumberMinor.c_str());
       cout << "Run Number Major " << m_RunNumber << endl;
       cout << "Run Number Minor " << m_RunNumberMinor << endl;
-      cout << "Verbose level " << m_VerboseLevel << endl;
-
     }
     
     else{
