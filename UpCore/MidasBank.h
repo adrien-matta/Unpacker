@@ -39,6 +39,7 @@ struct EventFragment	{
 	bool found_charge;
 	bool found_channel;
   bool found_trailer;
+  bool complete;
 
 	float corrected_charge;
   
@@ -65,10 +66,10 @@ struct EventFragment	{
   
   //intiate with default
   EventFragment():tig10(false),tig64(false),IsBad(false),
-  found_time(false), found_charge(false), found_channel(false), found_trailer(false), found_eventID(false),
-  charge(0),channel(0),channel_raw(0),eventId(0),midasId(0),
-  cfd(0),led(0),triggerpattern(0),
-  timestamp_low(0),timestamp_high(0),timestamp_live(0),timestamp_tr(0),timestamp_ta(0),
+  found_time(false), found_charge(false), found_channel(false), found_trailer(false), found_eventID(false),complete(false),
+  charge(-1),channel(-1),channel_raw(-1),eventId(-1),midasId(-1),
+  cfd(-1),led(-1),triggerpattern(-1),
+  timestamp_low(-1),timestamp_high(-1),timestamp_live(-1),timestamp_tr(-1),timestamp_ta(-1),
   samplesfound(0){wave=new int[2880];}
   ~EventFragment(){delete wave;}
   
