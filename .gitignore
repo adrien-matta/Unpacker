@@ -31,3 +31,5 @@ Documentation/user_guide.log
 include/*
 unpacker
 nohup*
+*.log
+*.txt
