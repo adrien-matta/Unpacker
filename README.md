@@ -13,6 +13,10 @@ Installation
 Execute:
 > ./unpacker  path-to-Midas-file/runxxxxx_yyy.mid --user-output-tree-name rawData --no-bank-tree --user-output-path   path-to-/<Raw-Root-Data-dir>/  --intial-load 100000 --maximum-load 500000
 
+Misc.:
+Other helpful scripts are founs in the userScript directory
+
+
 ----------------------------------------------------------
 
 Future enhancement: 
