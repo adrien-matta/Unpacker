@@ -36,8 +36,8 @@ done
 
 
 # Examples run on terminal:
-# ./AnalyseList.sh /Users/moukaddam/Work/TRIUMF/S1719/MidasData/   /Users/moukaddam/Work/TRIUMF/S1719/RawData/   listofAllRuns.txt
-# ./AnalyseList.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/   listofAllRuns.txt
-# nohup sh AnalyseList.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/  listofAllRuns.txt >/dev/null 2>&1    &
-# nohup sh AnalyseList.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/  listofAllRuns.txt   &
+# ./AnalyseFileList.sh /Users/moukaddam/Work/TRIUMF/S1719/MidasData/   /Users/moukaddam/Work/TRIUMF/S1719/RawData/   listofAllRuns.txt
+# ./AnalyseFileList.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/   listofAllRuns.txt > name.log
+# nohup sh AnalyseFileList.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/  listofAllRuns.txt >/dev/null 2>&1    &
+# nohup sh AnalyseFileList.sh /Volumes/ne23dp/MidasData/   /Volumes/ne23dp/RawData/  listofAllRuns.txt   &
 
