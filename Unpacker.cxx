@@ -17,7 +17,7 @@ int main(int argc, char*argv[])	{
   struct tm* tm_info;
   time(&timer_start);
   tm_info = localtime(&timer_start);
-  strftime(buffer, 26, "Start time: %Y-%m-%d %H:%M:%S\n", tm_info);
+  strftime(buffer, 38, "Start time: %Y-%m-%d %H:%M:%S\n", tm_info);
   puts(buffer);
 
   //time elapsed (accurate in case required)
