@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include<cstdlib>
+#include <cstdlib>
 using namespace std;
 
 /////////////////////////
@@ -13,14 +13,14 @@ Sharc::Sharc(){
   m_DetNbrMap[2] =  13;
   m_DetNbrMap[3] =  14;
   m_DetNbrMap[4] =  15;
-  m_DetNbrMap[5] =  12;
-  m_DetNbrMap[6] =  9 ;
-  m_DetNbrMap[7] =  10;
-  m_DetNbrMap[8] =  11;
-  m_DetNbrMap[9] =  8 ;
-  m_DetNbrMap[10] = 5  ;
-  m_DetNbrMap[11] = 6  ;
-  m_DetNbrMap[12] = 7  ;
+  m_DetNbrMap[5] =  9;
+  m_DetNbrMap[6] =  10 ;
+  m_DetNbrMap[7] =  11;
+  m_DetNbrMap[8] =  12;
+  m_DetNbrMap[9] =  5 ;
+  m_DetNbrMap[10] = 6  ;
+  m_DetNbrMap[11] = 7  ;
+  m_DetNbrMap[12] = 8  ;
   m_DetNbrMap[13] = 4  ;
   m_DetNbrMap[14] = 1  ;
   m_DetNbrMap[15] = 2  ;
@@ -187,7 +187,7 @@ void Sharc::FillBoxFront(int DetNbr, int hit,TMidasEvent* TigEvent){
   int  StripNbr = m_FSPC2Detector[TigEvent->channel_number[hit]][3] + 1;
   if(StripNbr<25&&StripNbr>0){
     m_data->SetFront_DetectorNbr(m_DetNbrMap[DetNbr]);
-    m_data->SetFront_StripNbr(StripNbr);
+    m_data->SetFront_StripNbr(24-StripNbr+1);
     m_data->SetFront_Energy(TigEvent->charge_raw[hit]);
     m_data->SetFront_TimeCFD(TigEvent->cfd_value[hit]);
     m_data->SetFront_TimeLED(TigEvent->led_value[hit]);
@@ -270,7 +270,7 @@ void Sharc::FillQQQBack(int DetNbr, int hit,TMidasEvent* TigEvent){
   int StripNbr = m_FSPC2Detector[TigEvent->channel_number[hit]][3] + 1;
   if(StripNbr<25){
     m_data->SetBack_DetectorNbr(m_DetNbrMap[DetNbr]);
-    m_data->SetBack_StripNbr(StripNbr);
+    m_data->SetBack_StripNbr(24-StripNbr+1);
     m_data->SetBack_Energy(TigEvent->charge_raw[hit]);
     m_data->SetBack_TimeCFD(TigEvent->cfd_value[hit]);
     m_data->SetBack_TimeLED(TigEvent->led_value[hit]);
