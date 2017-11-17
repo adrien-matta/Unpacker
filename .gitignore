@@ -33,3 +33,4 @@ unpacker
 nohup*
 *.log
 *.txt
+Config.txt
